@@ -1,4 +1,3 @@
-
 %{
 #include "symtab.h"
 #include "turtle.tab.h"
@@ -19,6 +18,8 @@ TO              return TO;
 DO              return DO;
 BEGIN           return COPEN;
 END             return CCLOSE;
+IF		return IF;
+WHILE		return WHILE;
 
 sin             return SIN;
 cos             return COS;
