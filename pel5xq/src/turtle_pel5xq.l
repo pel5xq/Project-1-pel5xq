@@ -16,8 +16,8 @@ FOR             return FOR;
 STEP            return STEP;
 TO              return TO;
 DO              return DO;
-BEGIN           return COPEN;
-END             return CCLOSE;
+BEGIN           return CBEGIN;
+END          	return CEND;
 IF		return IF;
 ELSE		return ELSE;
 WHILE		return WHILE;
@@ -27,12 +27,12 @@ cos             return COS;
 sqrt            return SQRT;
 
 ;               return SEMICOLON;
-\+              return PLUS;
--               return MINUS;
-\*              return TIMES;
+\+              return ADD;
+-               return SUBTRACT;
+\*              return MULT;
 \/              return DIV;
-\(              return OPEN;
-\)              return CLOSE;
+\(              return OPENPAREN;
+\)              return CLOSEPAREN;
 =               return ASSIGN;
 
 [a-z]+          { yylval.n = lookup(yytext); 
@@ -42,7 +42,7 @@ sqrt            return SQRT;
 		}
     
 [0-9]+\.[0-9]+  yylval.d = atof(yytext);  return FLOAT;
-[0-9]+          yylval.i = atoi(yytext);  return NUMBER;
+[0-9]+          yylval.i = atoi(yytext);  return INT;
 
 .               fprintf(stderr,"Unexpected character %c (%2X)\n",yytext[0],yytext[0]);
 
