@@ -19,6 +19,7 @@ DO              return DO;
 BEGIN           return COPEN;
 END             return CCLOSE;
 IF		return IF;
+ELSE		return ELSE;
 WHILE		return WHILE;
 
 sin             return SIN;
