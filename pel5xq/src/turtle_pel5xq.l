@@ -19,6 +19,7 @@ DO              return DO;
 BEGIN           return CBEGIN;
 END          	return CEND;
 IF		return IF;
+THEN		return THEN;
 ELSE		return ELSE;
 WHILE		return WHILE;
 
@@ -34,6 +35,14 @@ sqrt            return SQRT;
 \(              return OPENPAREN;
 \)              return CLOSEPAREN;
 =               return ASSIGN;
+==		return EQUALS;
+!=		return NOTEQUALS;
+<=		reutrn LESSOREQUAL;
+<		return LESSTHAN;
+>		return GREATERTHAN;
+>=		return GREATEROREQUAL;
+\{		return OPENBRACKET;
+\}		return CLOSEBRACKET;
 
 [a-z]+          { yylval.n = lookup(yytext); 
                   if (yylval.n==NULL)
