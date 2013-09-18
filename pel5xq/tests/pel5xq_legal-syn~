@@ -1,6 +1,0 @@
-VAR x;
-VAR y;
-x = (5*-3) + sin(45.0);
-TURN x;
-FOR y = 0 STEP 1 TO 10 DO JUMP y;
-BEGIN GO sqrt(-14); END
