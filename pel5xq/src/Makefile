@@ -6,8 +6,8 @@ eins.out: eins.tlt scanner
 lex.yy.o:  lex.yy.c token.h symtab.h
 	gcc -c lex.yy.c
 
-lex.yy.c: turtle.l
-	flex turtle.l
+lex.yy.c: turtle_pel5xq.l
+	flex turtle_pel5xq.l
 	
 scanner:  lex.yy.o symtab.c
 	gcc lex.yy.o symtab.c -lfl -o scanner 
