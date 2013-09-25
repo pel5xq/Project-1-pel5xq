@@ -1,7 +1,7 @@
 
 %{
 #include "symtab.h"
-#include "token.h"
+#include "turtle.tab.h"
 %}
 
 %%
@@ -19,10 +19,6 @@ TO              return TO;
 DO              return DO;
 BEGIN           return COPEN;
 END             return CCLOSE;
-IF		return IF;
-THEN		return THEN;
-ELSE		return ELSE;
-WHILE		return WHILE;
 
 sin             return SIN;
 cos             return COS;
@@ -37,16 +33,6 @@ sqrt            return SQRT;
 \)              return CLOSE;
 =               return ASSIGN;
 
-"<"		return LESSTHAN;
-">"		return GREATERTHAN;
-"<="		return LESSOREQUAL;
-">="		return GREATEROREQUAL;
-==		return EQUALS;
-!=		return NOTEQUALS;
-"{"		return OPENBRAC;
-"}"		return CLOSEBRAC;
-
-
 [a-z]+          { yylval.n = lookup(yytext); 
                   if (yylval.n==NULL)
 		    yylval.n = insert(yytext);
@@ -59,3 +45,4 @@ sqrt            return SQRT;
 .               fprintf(stderr,"Unexpected character %c (%2X)\n",yytext[0],yytext[0]);
 
 %%
+

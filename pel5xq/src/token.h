@@ -42,5 +42,5 @@
 typedef union YYSTYPE
 { int i; node *n; double d;}
         YYSTYPE;
-YYSTYPE yylval;
+extern YYSTYPE yylval;
 
