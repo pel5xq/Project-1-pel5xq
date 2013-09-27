@@ -1,0 +1,38 @@
+VAR myvar;
+
+myvar=6;
+
+IF (myvar == 4) THEN {
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+} ELSE {
+	IF (myvar == 5) THEN {
+		TURN 45;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+	}
+	ELSE {
+		GO 250;
+		TURN 45;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+	}
+}

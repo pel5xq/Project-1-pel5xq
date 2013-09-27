@@ -1,0 +1,7 @@
+VAR myvar;
+VAR myothervar;
+
+myvar=4;
+myothervar=3;
+
+IF (myvar == 4) THEN IF (myothervar > 2) THEN myvar=7; ELSE myothervar=8; ELSE myothervar=4;

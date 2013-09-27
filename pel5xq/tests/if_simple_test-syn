@@ -1,0 +1,7 @@
+VAR myvar;
+
+myvar=4;
+
+IF (myvar == 4) THEN 
+	GO 40;
+

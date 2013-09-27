@@ -1,0 +1,14 @@
+VAR myvar;
+
+myvar=4;
+
+IF (myvar == 4) THEN {
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+}

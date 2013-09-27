@@ -1,0 +1,30 @@
+VAR myvar;
+VAR myothervar;
+
+myvar=4;
+myothervar=3;
+
+IF (myvar == 4) THEN {
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	IF (myothervar <= 3) THEN {
+		GO 40;
+		TURN 90;
+		GO 40;
+		TURN 90;
+	}
+} ELSE {
+	IF (myothervar > 2) THEN
+		GO 100;
+	ELSE
+		GO 500;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+	GO 40;
+	TURN 90;
+}
