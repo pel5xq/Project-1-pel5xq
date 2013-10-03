@@ -1,0 +1,13 @@
+VAR i;
+i=0;
+IF ((cos(i))==1) THEN {
+	IF (i > 3) THEN {
+		i = 2;
+	} ELSE {
+		i = i-1;
+	}
+} ELSE 
+	GO i;
+//Syntax does not allow for
+//else statements to be without
+//braces for a single statement block

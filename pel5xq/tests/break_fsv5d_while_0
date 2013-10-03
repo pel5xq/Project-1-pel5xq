@@ -1,0 +1,10 @@
+VAR i;
+i=0;
+WHILE ((sqrt(i))<(i*sin(i-3))) {
+	WHILE(3<i) { 
+		GO 20; JUMP 5; TURN 90; 
+		i = i/2;	
+	}
+	i = i+1;
+}
+//Can't find a way to break while

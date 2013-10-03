@@ -1,0 +1,11 @@
+VAR i;
+i=0;
+IF ((cos(i))==1) THEN {
+	IF (i > 3) THEN {
+		//Do nothing
+	} ELSE {
+		i = i-1;
+	}
+} 
+//Syntax does not allow for
+//empty if or else blocks
