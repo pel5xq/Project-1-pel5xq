@@ -29,6 +29,29 @@ void StmtBlock::PrintChildren(int indentLevel) {
     stmts->PrintAll(indentLevel+1);
 }
 
+CaseStmt::CaseStmt(Expr *intValue, List<Stmt*> *statements) {
+    Assert(statements != NULL); //intValue can be null
+    intVal = intValue;
+    if (intVal) intVal->SetParent(this);
+    (stmts=statements)->SetParentAll(this);
+}
+
+void CaseStmt::PrintChildren(int indentLevel) {
+    if (intVal) intVal->Print(indentLevel+1);
+    stmts->PrintAll(indentLevel+1);
+}
+
+SwitchStmt::SwitchStmt(Expr *testExpr, List<CaseStmt*> *cases) {
+    Assert(testExpr != NULL && cases != NULL);
+    (test=testExpr)->SetParent(this);
+    (stmts=cases)->SetParentAll(this);
+}
+
+void SwitchStmt::PrintChildren(int indentLevel) {
+    test->Print(indentLevel+1);
+    stmts->PrintAll(indentLevel+1);
+}
+
 ConditionalStmt::ConditionalStmt(Expr *t, Stmt *b) { 
     Assert(t != NULL && b != NULL);
     (test=t)->SetParent(this); 

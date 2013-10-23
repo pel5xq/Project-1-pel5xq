@@ -50,6 +50,37 @@ class StmtBlock : public Stmt
     void PrintChildren(int indentLevel);
 };
 
+class CaseStmt : public Stmt 
+{
+  protected:
+    Expr *intVal;
+    List<Stmt*> *stmts; //Null for default
+    
+  public:
+    CaseStmt(Expr *intValue, List<Stmt*> *statements);
+    const char *GetPrintNameForNode() { return "Case"; }
+    void PrintChildren(int indentLevel);
+};
+
+class DefaultCaseStmt : public CaseStmt 
+{
+  public:
+    DefaultCaseStmt(List<Stmt*> *statements)
+            : CaseStmt(NULL, statements) {}
+    const char *GetPrintNameForNode() { return "Default"; }
+};
+
+class SwitchStmt : public Stmt 
+{
+  protected:
+    Expr *test;
+    List<CaseStmt*> *stmts;
+    
+  public:
+    SwitchStmt(Expr *testExpr, List<CaseStmt*> *cases);
+    const char *GetPrintNameForNode() { return "SwitchStmt"; }
+    void PrintChildren(int indentLevel);
+};
   
 class ConditionalStmt : public Stmt
 {
