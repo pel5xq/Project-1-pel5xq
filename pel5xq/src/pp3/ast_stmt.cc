@@ -168,24 +168,28 @@ void ForStmt::BuildSymbolTable(SymbolTable *table) {
 
 void StmtBlock::ValidateDeclarations() {
      int i = 0;
-     for (;i<decls->NumElements();i++) {
-          decls->Nth(i)->ValidateDeclarations();
+     if (decls) {
+        for (;i<decls->NumElements();i++) {
+             if (decls->Nth(i)) decls->Nth(i)->ValidateDeclarations();
+        }
      }
-     for (i=0;i<stmts->NumElements();i++) {
-          stmts->Nth(i)->ValidateDeclarations();
+     if (stmts) {
+        for (i=0;i<stmts->NumElements();i++) {
+             if (stmts->Nth(i)) stmts->Nth(i)->ValidateDeclarations();
+        }
      }
 }
 
 void IfStmt::ValidateDeclarations() {
-     body->ValidateDeclarations();
-     if (elseBody) ValidateDeclarations();
+     if (body) body->ValidateDeclarations();
+     if (elseBody) elseBody->ValidateDeclarations();
 }
 
 void WhileStmt::ValidateDeclarations() {
-     body->ValidateDeclarations();
+     if (body) body->ValidateDeclarations();
 }
 
 void ForStmt::ValidateDeclarations() {
-     body->ValidateDeclarations();
+     if (body) body->ValidateDeclarations();
 }
 

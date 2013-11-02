@@ -276,7 +276,9 @@ void FnDecl::ValidateDeclarations() {
 
    if (formals) {
       int i = 0;
-      for (; i < formals->NumElements(); i++) formals->Nth(i)->ValidateDeclarations();
+      for (; i < formals->NumElements(); i++) { 
+         if (formals->Nth(i)) formals->Nth(i)->ValidateDeclarations();
+      }
    }
 
    if (body) body->ValidateDeclarations();
@@ -289,12 +291,20 @@ void VarDecl::ValidateDeclarations() {
 }
 
 void ClassDecl::ValidateDeclarations() {
-   int i = 0;
-   for (; i < members->NumElements(); i++) members->Nth(i)->ValidateDeclarations();
+   if (members) {
+      int i = 0;
+      for (; i < members->NumElements(); i++)  {
+         if (members->Nth(i)) members->Nth(i)->ValidateDeclarations(); 
+      }
+   }
 }
 
 void InterfaceDecl::ValidateDeclarations() {
-   int i = 0;
-   for (; i < members->NumElements(); i++) members->Nth(i)->ValidateDeclarations();
+   if (members) {
+      int i = 0;
+      for (; i < members->NumElements(); i++) {
+         if (members->Nth(i)) members->Nth(i)->ValidateDeclarations();
+      }
+   }
 }
 
