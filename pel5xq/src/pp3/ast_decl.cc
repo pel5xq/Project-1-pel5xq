@@ -274,10 +274,12 @@ void FnDecl::ValidateDeclarations() {
       ReportError::Formatted(returnType->GetLocation(), "No declaration found for type '%s'", returnType->GetCoreName());
    }
 
-   int i = 0;
-   for (; i < formals->NumElements(); i++) formals->Nth(i)->ValidateDeclarations();
+   if (formals) {
+      int i = 0;
+      for (; i < formals->NumElements(); i++) formals->Nth(i)->ValidateDeclarations();
+   }
 
-   body->ValidateDeclarations();
+   if (body) body->ValidateDeclarations();
 }
 
 void VarDecl::ValidateDeclarations() {
