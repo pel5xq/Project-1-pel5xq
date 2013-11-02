@@ -27,7 +27,10 @@ class Type : public Node
     
     const char *GetPrintNameForNode() { return "Type"; }
     void PrintChildren(int indentLevel);
-    const char *GetTypeName() { return typeName; }
+    const char *GetFullName();
+    const char *GetCoreName();
+    bool isPrimitiveType();
+    //const char *GetTypeName() { return typeName; }
     virtual int compare(Type *other);
 };
 

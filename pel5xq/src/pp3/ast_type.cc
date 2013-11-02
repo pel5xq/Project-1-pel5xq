@@ -32,6 +32,54 @@ void Type::PrintChildren(int indentLevel) {
     printf("%s", typeName);
 }
 
+bool Type::isPrimitiveType() {
+   return (strcmp(GetCoreName(), "int") == 0
+           || strcmp(GetCoreName(), "double") == 0
+           || strcmp(GetCoreName(), "bool") == 0
+           || strcmp(GetCoreName(), "string") == 0
+           || strcmp(GetCoreName(), "void") == 0);
+}
+
+const char* Type::GetFullName() {
+   if (NULL == typeName) {
+      NamedType *nat1 = dynamic_cast<NamedType *>(this);
+      if (NULL == nat1) {
+         ArrayType *art1 = dynamic_cast<ArrayType *>(this);
+            if (NULL == art1) {
+		//Unexpected
+                return NULL;
+            }
+            else {
+               const char *typeval = art1->GetElemType()->GetFullName();
+               char *retVal = new char[strlen(typeval)+2]; 
+               memcpy(retVal, typeval, strlen(typeval));
+               strcat(retVal, "[]");
+               return retVal;
+            }
+      }
+      else return nat1->GetName();
+   }
+   else return typeName;
+}
+
+const char* Type::GetCoreName() {
+   if (NULL == typeName) {
+      NamedType *nat1 = dynamic_cast<NamedType *>(this);
+      if (NULL == nat1) {
+         ArrayType *art1 = dynamic_cast<ArrayType *>(this);
+            if (NULL == art1) {
+		//Unexpected
+                return NULL;
+            }
+            else {
+               return art1->GetElemType()->GetCoreName();
+            }
+      }
+      else return nat1->GetName();
+   }
+   else return typeName;
+}
+
 int Type::compare(Type *other) { //Handle when typeName is NULL (Named, Array)
    int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
    NamedType *nat1;

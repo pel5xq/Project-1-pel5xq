@@ -136,12 +136,12 @@ void ClassDecl::ValidateInterfaces() {
       const char *name = implements->Nth(i)->GetName();
       Decl* interface = symboltable->table->Lookup(name);
       if (NULL == interface) {
-         ReportError::Formatted(implements->Nth(i)->GetLocation(), "No declaration for interface '%s' found", name);
+         ReportError::Formatted(implements->Nth(i)->GetLocation(), "No declaration found for interface '%s'", name);
          continue;
       }
       InterfaceDecl *intdecl = dynamic_cast<InterfaceDecl *>(interface);
       if (NULL == intdecl) {
-         ReportError::Formatted(implements->Nth(i)->GetLocation(), "No declaration for interface '%s' found", name);
+         ReportError::Formatted(implements->Nth(i)->GetLocation(), "No declaration found for interface '%s'", name);
          continue;
       }
       if (intdecl->bodytable) {
@@ -193,13 +193,13 @@ void ClassDecl::ValidateExtensions(SymbolTable *covered) {
    else {
       Decl *parentDecl = symboltable->table->Lookup(extends->GetName());
       if (NULL == parentDecl) {
-         ReportError::Formatted(extends->GetLocation(), "No declaration for class '%s' found", extends->GetName());
+         ReportError::Formatted(extends->GetLocation(), "No declaration found for class '%s'", extends->GetName());
          doneAtThisLevel = true;
       }
       else {
          parentClass = dynamic_cast<ClassDecl *>(parentDecl);
          if (NULL == parentClass) {
-            ReportError::Formatted(extends->GetLocation(), "No declaration for class '%s' found", extends->GetName());
+            ReportError::Formatted(extends->GetLocation(), "No declaration found for class '%s'", extends->GetName());
             doneAtThisLevel = true;
          }
       }
@@ -270,12 +270,18 @@ void ClassDecl::ValidateExtensions(SymbolTable *covered) {
 }
 
 void FnDecl::ValidateDeclarations() {
+   if (!returnType->isPrimitiveType() && NULL == symboltable->Find(returnType->GetCoreName())) {
+      ReportError::Formatted(returnType->GetLocation(), "No declaration found for type '%s'", returnType->GetCoreName());
+   }
 
+   int i = 0;
+   for (; i < formals->NumElements(); i++) formals->Nth(i)->ValidateDeclarations();
 }
 
 void VarDecl::ValidateDeclarations() {
-   //printf("%s\n", type->GetName());
-   //if (NULL == symboltable->Find(type->GetName()))
+   if (!type->isPrimitiveType() && NULL == symboltable->Find(type->GetCoreName())) {
+      ReportError::Formatted(type->GetLocation(), "No declaration found for type '%s'", type->GetCoreName());
+   }
 }
 
 void ClassDecl::ValidateDeclarations() {
