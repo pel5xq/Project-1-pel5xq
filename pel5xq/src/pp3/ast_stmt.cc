@@ -113,14 +113,15 @@ void SwitchStmt::PrintChildren(int indentLevel) {
 void Program::ValidateClassHierarchy() {
    Iterator<Decl*> iter = symboltable->table->GetIterator();
    Decl *decl;
-   while ((decl = iter.GetNextValue()) != NULL) {
-      decl->ValidateInterfaces();
-   }
    //Just to hold what classes have been checked, not a symbol table
    SymbolTable *coveredClasses = new SymbolTable(); 
-   iter = symboltable->table->GetIterator();
    while ((decl = iter.GetNextValue()) != NULL) {
       decl->ValidateExtensions(coveredClasses);
+   }
+
+   iter = symboltable->table->GetIterator();
+   while ((decl = iter.GetNextValue()) != NULL) {
+      decl->ValidateInterfaces();
    }
 }
 
@@ -161,5 +162,30 @@ void WhileStmt::BuildSymbolTable(SymbolTable *table) {
 
 void ForStmt::BuildSymbolTable(SymbolTable *table) {
      body->BuildSymbolTable(symboltable);
+}
+
+
+
+void StmtBlock::ValidateDeclarations() {
+     int i = 0;
+     for (;i<decls->NumElements();i++) {
+          decls->Nth(i)->ValidateDeclarations();
+     }
+     for (i=0;i<stmts->NumElements();i++) {
+          stmts->Nth(i)->ValidateDeclarations();
+     }
+}
+
+void IfStmt::ValidateDeclarations() {
+     body->ValidateDeclarations();
+     if (elseBody) ValidateDeclarations();
+}
+
+void WhileStmt::ValidateDeclarations() {
+     body->ValidateDeclarations();
+}
+
+void ForStmt::ValidateDeclarations() {
+     body->ValidateDeclarations();
 }
 

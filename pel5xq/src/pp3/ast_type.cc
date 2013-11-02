@@ -80,6 +80,24 @@ const char* Type::GetCoreName() {
    else return typeName;
 }
 
+Type* Type::GetCoreType() {
+   if (NULL == typeName) {
+      NamedType *nat1 = dynamic_cast<NamedType *>(this);
+      if (NULL == nat1) {
+         ArrayType *art1 = dynamic_cast<ArrayType *>(this);
+            if (NULL == art1) {
+		//Unexpected
+                return NULL;
+            }
+            else {
+               return art1->GetElemType()->GetCoreType();
+            }
+      }
+      else return this;
+   }
+   else return this;
+}
+
 int Type::compare(Type *other) { //Handle when typeName is NULL (Named, Array)
    int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
    NamedType *nat1;

@@ -276,11 +276,13 @@ void FnDecl::ValidateDeclarations() {
 
    int i = 0;
    for (; i < formals->NumElements(); i++) formals->Nth(i)->ValidateDeclarations();
+
+   body->ValidateDeclarations();
 }
 
 void VarDecl::ValidateDeclarations() {
    if (!type->isPrimitiveType() && NULL == symboltable->Find(type->GetCoreName())) {
-      ReportError::Formatted(type->GetLocation(), "No declaration found for type '%s'", type->GetCoreName());
+      ReportError::Formatted(type->GetCoreType()->GetLocation(), "No declaration found for type '%s'", type->GetCoreName());
    }
 }
 

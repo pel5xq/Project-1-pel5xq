@@ -30,6 +30,7 @@ class Type : public Node
     const char *GetFullName();
     const char *GetCoreName();
     bool isPrimitiveType();
+    Type* GetCoreType();
     //const char *GetTypeName() { return typeName; }
     virtual int compare(Type *other);
 };

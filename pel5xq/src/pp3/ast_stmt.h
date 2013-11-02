@@ -42,6 +42,7 @@ class Stmt : public Node
      Stmt() : Node() {}
      Stmt(yyltype loc) : Node(loc) {}
      virtual void BuildSymbolTable(SymbolTable *table) {}
+     virtual void ValidateDeclarations() {}
 };
 
 class StmtBlock : public Stmt 
@@ -55,6 +56,7 @@ class StmtBlock : public Stmt
     const char *GetPrintNameForNode() { return "StmtBlock"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
 };
 
   
@@ -67,6 +69,7 @@ class ConditionalStmt : public Stmt
   public:
     ConditionalStmt(Expr *testExpr, Stmt *body);
     void BuildSymbolTable(SymbolTable *table) {}
+    void ValidateDeclarations() {}
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -86,6 +89,7 @@ class ForStmt : public LoopStmt
     const char *GetPrintNameForNode() { return "ForStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
 };
 
 class WhileStmt : public LoopStmt 
@@ -95,6 +99,7 @@ class WhileStmt : public LoopStmt
     const char *GetPrintNameForNode() { return "WhileStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
 };
 
 class IfStmt : public ConditionalStmt 
@@ -107,6 +112,7 @@ class IfStmt : public ConditionalStmt
     const char *GetPrintNameForNode() { return "IfStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
 };
 
 class BreakStmt : public Stmt 
@@ -115,6 +121,7 @@ class BreakStmt : public Stmt
     BreakStmt(yyltype loc) : Stmt(loc) {}
     const char *GetPrintNameForNode() { return "BreakStmt"; }
     void BuildSymbolTable(SymbolTable *table) {}
+    void ValidateDeclarations() {}
 };
 
 class ReturnStmt : public Stmt  
@@ -127,6 +134,7 @@ class ReturnStmt : public Stmt
     const char *GetPrintNameForNode() { return "ReturnStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
+    void ValidateDeclarations() {}
 };
 
 class PrintStmt : public Stmt
@@ -139,6 +147,7 @@ class PrintStmt : public Stmt
     const char *GetPrintNameForNode() { return "PrintStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
+    void ValidateDeclarations() {}
 };
 
 
@@ -167,6 +176,7 @@ class SwitchStmt : public Stmt
     const char *GetPrintNameForNode() { return "SwitchStmt"; }
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
+    void ValidateDeclarations() {}
 };
 
 #endif
