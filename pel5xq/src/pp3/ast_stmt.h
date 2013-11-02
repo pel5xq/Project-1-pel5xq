@@ -31,6 +31,7 @@ class Program : public Node
      void PrintChildren(int indentLevel);
      void BuildSymbolTable(SymbolTable *table);
      void ValidateClassHierarchy();
+     void ValidateDeclarations();
 };
 
 class Stmt : public Node

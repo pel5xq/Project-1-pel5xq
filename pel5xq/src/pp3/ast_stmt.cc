@@ -124,6 +124,14 @@ void Program::ValidateClassHierarchy() {
    }
 }
 
+void Program::ValidateDeclarations() {
+   Iterator<Decl*> iter = symboltable->table->GetIterator();
+   Decl *decl;
+   while ((decl = iter.GetNextValue()) != NULL) {
+      decl->ValidateDeclarations();
+   }
+}
+
 void Program::BuildSymbolTable(SymbolTable *table){
      symboltable = table;
      for (int i = 0; i < decls->NumElements(); i++) {

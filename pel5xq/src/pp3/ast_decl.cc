@@ -269,3 +269,22 @@ void ClassDecl::ValidateExtensions(SymbolTable *covered) {
    covered->table->Enter(GetName(), this);
 }
 
+void FnDecl::ValidateDeclarations() {
+
+}
+
+void VarDecl::ValidateDeclarations() {
+   //printf("%s\n", type->GetName());
+   //if (NULL == symboltable->Find(type->GetName()))
+}
+
+void ClassDecl::ValidateDeclarations() {
+   int i = 0;
+   for (; i < members->NumElements(); i++) members->Nth(i)->ValidateDeclarations();
+}
+
+void InterfaceDecl::ValidateDeclarations() {
+   int i = 0;
+   for (; i < members->NumElements(); i++) members->Nth(i)->ValidateDeclarations();
+}
+

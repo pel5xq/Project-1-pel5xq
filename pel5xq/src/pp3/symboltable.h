@@ -14,6 +14,7 @@ class SymbolTable {
      SymbolTable *parent;
      SymbolTable();
      SymbolTable(SymbolTable *other); //instantiates with parent
+     Decl* Find(const char *key);
 };
 
 #endif

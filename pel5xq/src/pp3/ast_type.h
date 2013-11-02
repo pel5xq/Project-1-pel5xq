@@ -27,7 +27,8 @@ class Type : public Node
     
     const char *GetPrintNameForNode() { return "Type"; }
     void PrintChildren(int indentLevel);
-    int compare(Type *other);
+    const char *GetTypeName() { return typeName; }
+    virtual int compare(Type *other);
 };
 
 class NamedType : public Type 
@@ -52,6 +53,7 @@ class ArrayType : public Type
     ArrayType(yyltype loc, Type *elemType);
     
     const char *GetPrintNameForNode() { return "ArrayType"; }
+    Type *GetElemType() { return elemType; }
     void PrintChildren(int indentLevel);
 };
 

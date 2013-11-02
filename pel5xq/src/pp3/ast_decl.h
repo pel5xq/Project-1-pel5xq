@@ -32,6 +32,7 @@ class Decl : public Node
     virtual void BuildSymbolTable(SymbolTable *table) {}
     virtual void ValidateExtensions(SymbolTable *covered) {}
     virtual void ValidateInterfaces() {}
+    virtual void ValidateDeclarations() {}
 };
 
 class VarDecl : public Decl 
@@ -47,6 +48,7 @@ class VarDecl : public Decl
     void BuildSymbolTable(SymbolTable *table);
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
+    void ValidateDeclarations();
 };
 
 class ClassDecl : public Decl 
@@ -65,6 +67,7 @@ class ClassDecl : public Decl
     void BuildSymbolTable(SymbolTable *table);
     void ValidateExtensions(SymbolTable *covered);
     void ValidateInterfaces();
+    void ValidateDeclarations();
 };
 
 class InterfaceDecl : public Decl 
@@ -80,6 +83,7 @@ class InterfaceDecl : public Decl
     void BuildSymbolTable(SymbolTable *table);
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
+    void ValidateDeclarations();
 };
 
 class FnDecl : public Decl 
@@ -100,6 +104,7 @@ class FnDecl : public Decl
     void BuildSymbolTable(SymbolTable *table);
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
+    void ValidateDeclarations();
 };
 
 #endif
