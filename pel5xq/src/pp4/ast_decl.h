@@ -33,6 +33,8 @@ class Decl : public Node
     virtual void ValidateExtensions(SymbolTable *covered) {}
     virtual void ValidateInterfaces() {}
     virtual void ValidateDeclarations() {}
+    virtual void Check(SymbolTable *rootscope) {}
+    virtual int isSubclassOf(const char *parentName) {return 0;}
 };
 
 class VarDecl : public Decl 
@@ -49,6 +51,8 @@ class VarDecl : public Decl
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
+    int isSubclassOf(const char *parentName) { return 0;}
 };
 
 class ClassDecl : public Decl 
@@ -68,6 +72,8 @@ class ClassDecl : public Decl
     void ValidateExtensions(SymbolTable *covered);
     void ValidateInterfaces();
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
+    int isSubclassOf(const char *parentName);
 };
 
 class InterfaceDecl : public Decl 
@@ -84,6 +90,8 @@ class InterfaceDecl : public Decl
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
+    int isSubclassOf(const char *parentName);
 };
 
 class FnDecl : public Decl 
@@ -105,6 +113,8 @@ class FnDecl : public Decl
     void ValidateExtensions(SymbolTable *covered) {}
     void ValidateInterfaces() {}
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
+    int isSubclassOf(const char *parentName) {return 0;}
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include "ast_type.h"
 #include "ast_decl.h"
 #include <string.h>
+#include "symboltable.h"
 
  
 /* Class constants
@@ -98,7 +99,7 @@ Type* Type::GetCoreType() {
    else return this;
 }
 
-int Type::compare(Type *other) { //Handle when typeName is NULL (Named, Array)
+int Type::compare(Type *other) {
    int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
    NamedType *nat1;
    NamedType *nat2;
@@ -143,6 +144,63 @@ int Type::compare(Type *other) { //Handle when typeName is NULL (Named, Array)
    }
    if (type1 == 1) {
       return strcmp(nat1->GetName(), nat2->GetName());
+   }
+   return -1; //Shouldn't be reached
+}
+
+int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must be usage (can be subclass)
+   int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
+   NamedType *nat1;
+   NamedType *nat2;
+   ArrayType *art1;
+   ArrayType *art2;
+
+   if (NULL == typeName) {
+      nat1 = dynamic_cast<NamedType *>(this);
+      if (NULL == nat1) {
+         art1 = dynamic_cast<ArrayType *>(this);
+            if (NULL == art1) {
+		printf("Unexpected case, assuming unequal\n");
+                return -1;
+            }
+            else type1 = -1;
+      }
+      else type1 = 1;
+   }
+   else type1 = 0;
+
+   if (NULL == other->typeName) {
+      nat2 = dynamic_cast<NamedType *>(other);
+      if (NULL == nat2) {
+         art2 = dynamic_cast<ArrayType *>(other);
+            if (NULL == art2) {
+		printf("Unexpected case, assuming unequal\n");
+                return -1;
+            }
+            else type2 = -1;
+      }
+      else type2 = 1;
+   }
+   else type2 = 0;
+   if (type1 != type2) {
+      return -1;
+   }
+   if (type1 == 0) {
+      return strcmp(typeName, other->typeName);
+   }
+   if (type1 == -1) {
+      return art1->GetElemType()->comparePolymorph(art2->GetElemType(), rootscope);
+   }
+   if (type1 == 1) {
+      if (strcmp(nat1->GetName(), nat2->GetName()) == 0) return 0;
+      else {
+        Decl* childDecl = rootscope->table->Lookup(nat2->GetName());
+	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
+        else {
+           printf("Unexpected null class definition %s\n", nat2->GetName());
+           return -1;
+        }
+      }
    }
    return -1; //Shouldn't be reached
 }

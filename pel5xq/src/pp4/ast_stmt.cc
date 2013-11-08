@@ -133,6 +133,16 @@ void Program::ValidateDeclarations() {
    }
 }
 
+void Program::ValidateProgram() {
+   ValidateDeclarations();
+
+   Iterator<Decl*> iter = symboltable->table->GetIterator();
+   Decl *decl;
+   while ((decl = iter.GetNextValue()) != NULL) {
+      decl->Check(symboltable);
+   }
+}
+
 void Program::BuildSymbolTable(SymbolTable *table){
      symboltable = table;
      for (int i = 0; i < decls->NumElements(); i++) {
@@ -193,3 +203,39 @@ void ForStmt::ValidateDeclarations() {
      if (body) body->ValidateDeclarations();
 }
 
+void StmtBlock::Check(SymbolTable *rootscope) {
+   if (stmts) {
+      int i = 0;
+      for (; i < stmts->NumElements(); i++) {
+         stmts->Nth(i)->Check(rootscope);
+      }
+   }
+}
+
+void ForStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void WhileStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void IfStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void BreakStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void ReturnStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void PrintStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void SwitchStmt::Check(SymbolTable *rootscope) {
+
+}

@@ -13,6 +13,7 @@
 #include "ast.h"
 #include "ast_stmt.h"
 #include "list.h"
+#include "symboltable.h"
 
 
 class NamedType; // for new
@@ -25,6 +26,7 @@ class Expr : public Stmt
     Expr(yyltype loc) : Stmt(loc) {}
     Expr() : Stmt() {}
     void BuildSymbolTable(SymbolTable *table) {}
+    void Check(SymbolTable *rootscope) {}
 };
 
 /* This node type is used for those places where an expression is optional.

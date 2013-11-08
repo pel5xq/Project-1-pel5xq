@@ -8,8 +8,9 @@
 #include "utility.h"
 #include "symboltable.h"
 #include "errors.h"
+#include <string.h>
         
-          
+           
 Decl::Decl(Identifier *n) : Node(*n->GetLocation()) {
     Assert(n != NULL);
     (id=n)->SetParent(this); 
@@ -308,3 +309,49 @@ void InterfaceDecl::ValidateDeclarations() {
    }
 }
 
+void FnDecl::Check(SymbolTable *rootscope) {
+   if (body) body->Check(rootscope);
+}
+
+void VarDecl::Check(SymbolTable *rootscope) {
+   //Nothing to be done at this stage
+}
+
+void ClassDecl::Check(SymbolTable *rootscope) {
+   if (members) {
+      int i = 0;
+      for (; i < members->NumElements(); i++)  {
+         if (members->Nth(i)) members->Nth(i)->Check(rootscope); 
+      }
+   }
+}
+
+void InterfaceDecl::Check(SymbolTable *rootscope) {
+   if (members) {
+      int i = 0;
+      for (; i < members->NumElements(); i++) {
+         if (members->Nth(i)) members->Nth(i)->Check(rootscope);
+      }
+   }
+}
+
+int ClassDecl::isSubclassOf(const char *parentName) {
+   if (strcmp(parentName, GetName()) == 0) return 1;
+   if (implements) {
+      int i = 0;
+      for (; i < implements->NumElements(); i++) {
+         Decl* parentDecl = symboltable->table->Lookup(implements->Nth(i)->GetName());
+         if (parentDecl && parentDecl->isSubclassOf(parentName) == 1) return 1; 
+      }
+   }
+   if (extends) {
+      Decl *parentDecl = symboltable->table->Lookup(extends->GetName());
+      if (parentDecl && parentDecl->isSubclassOf(parentName) == 1) return 1; 
+   }
+   return 0;
+}
+
+int InterfaceDecl::isSubclassOf(const char *parentName) {
+   if (strcmp(parentName, GetName()) == 0) return 1;
+   else return 0;
+}

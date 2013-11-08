@@ -32,6 +32,7 @@ class Program : public Node
      void BuildSymbolTable(SymbolTable *table);
      void ValidateClassHierarchy();
      void ValidateDeclarations();
+     void ValidateProgram();
 };
 
 class Stmt : public Node
@@ -43,6 +44,7 @@ class Stmt : public Node
      Stmt(yyltype loc) : Node(loc) {}
      virtual void BuildSymbolTable(SymbolTable *table) {}
      virtual void ValidateDeclarations() {}
+     virtual void Check(SymbolTable *rootscope) {}
 };
 
 class StmtBlock : public Stmt 
@@ -57,6 +59,7 @@ class StmtBlock : public Stmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
 };
 
   
@@ -70,6 +73,7 @@ class ConditionalStmt : public Stmt
     ConditionalStmt(Expr *testExpr, Stmt *body);
     void BuildSymbolTable(SymbolTable *table) {}
     void ValidateDeclarations() {}
+    void Check(SymbolTable *rootscope) {}
 };
 
 class LoopStmt : public ConditionalStmt 
@@ -90,6 +94,7 @@ class ForStmt : public LoopStmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
 };
 
 class WhileStmt : public LoopStmt 
@@ -100,6 +105,7 @@ class WhileStmt : public LoopStmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
 };
 
 class IfStmt : public ConditionalStmt 
@@ -113,6 +119,7 @@ class IfStmt : public ConditionalStmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
 };
 
 class BreakStmt : public Stmt 
@@ -122,6 +129,7 @@ class BreakStmt : public Stmt
     const char *GetPrintNameForNode() { return "BreakStmt"; }
     void BuildSymbolTable(SymbolTable *table) {}
     void ValidateDeclarations() {}
+    void Check(SymbolTable *rootscope);
 };
 
 class ReturnStmt : public Stmt  
@@ -135,6 +143,7 @@ class ReturnStmt : public Stmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
     void ValidateDeclarations() {}
+    void Check(SymbolTable *rootscope);
 };
 
 class PrintStmt : public Stmt
@@ -148,6 +157,7 @@ class PrintStmt : public Stmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
     void ValidateDeclarations() {}
+    void Check(SymbolTable *rootscope);
 };
 
 
@@ -177,6 +187,7 @@ class SwitchStmt : public Stmt
     void PrintChildren(int indentLevel);
     void BuildSymbolTable(SymbolTable *table) {}
     void ValidateDeclarations() {}
+    void Check(SymbolTable *rootscope);
 };
 
 #endif

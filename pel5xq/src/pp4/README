@@ -1,4 +1,4 @@
-Notes on PP3
+Notes on PP4
 
 The error output will differ from the provided output in the following ways:
 - For checking inherited type signatures, classes are checked before interfaces. This casues an order difference in my bad6 from the given bad6.

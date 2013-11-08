@@ -11,6 +11,7 @@
 
 #include "ast.h"
 #include "list.h"
+#include "symboltable.h"
 
 
 class Type : public Node 
@@ -33,6 +34,7 @@ class Type : public Node
     Type* GetCoreType();
     //const char *GetTypeName() { return typeName; }
     virtual int compare(Type *other);
+    virtual int comparePolymorph(Type *other, SymbolTable *rootscope);
 };
 
 class NamedType : public Type 

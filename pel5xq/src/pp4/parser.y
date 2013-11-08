@@ -109,7 +109,7 @@ Program   :    DeclList            {
                                       if (ReportError::NumErrors() == 0) {
                                           program->BuildSymbolTable(new SymbolTable());
 					  program->ValidateClassHierarchy();
-                                          program->ValidateDeclarations();
+                                          program->ValidateProgram();
 				      }
                                     }
           ;
