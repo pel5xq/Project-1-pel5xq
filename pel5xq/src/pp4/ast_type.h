@@ -35,6 +35,7 @@ class Type : public Node
     //const char *GetTypeName() { return typeName; }
     virtual int compare(Type *other);
     virtual int comparePolymorph(Type *other, SymbolTable *rootscope);
+    virtual int comparePolymorph(const char *other, SymbolTable *rootscope);
 };
 
 class NamedType : public Type 

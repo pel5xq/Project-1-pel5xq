@@ -148,7 +148,7 @@ int Type::compare(Type *other) {
    return -1; //Shouldn't be reached
 }
 
-int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must be usage (can be subclass)
+int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must be usage (i.e. can be subclass)
    int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
    NamedType *nat1;
    NamedType *nat2;
@@ -198,6 +198,75 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
 	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
         else {
            printf("Unexpected null class definition %s\n", nat2->GetName());
+           return -1;
+        }
+      }
+   }
+   return -1; //Shouldn't be reached
+}
+
+int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other must be usage (i.e. can be subclass)
+   int type1, type2; //-1 = ArrayType, 0 = Type, 1 = NamedType
+   NamedType *nat1;
+   ArrayType *art1;
+   char *coreOtherName;
+
+   if (NULL == typeName) {
+      nat1 = dynamic_cast<NamedType *>(this);
+      if (NULL == nat1) {
+         art1 = dynamic_cast<ArrayType *>(this);
+            if (NULL == art1) {
+		printf("Unexpected case, assuming unequal\n");
+                return -1;
+            }
+            else type1 = -1;
+      }
+      else type1 = 1;
+   }
+   else type1 = 0;
+
+   if (NULL != strchr(other, '[')) {
+      //Array
+      //Need to only pop one [] off, to make comparing a[] to a[][] work
+      type2 = -1;
+      coreOtherName = new char[strlen(other)-1];
+      memcpy(coreOtherName, other, strlen(other)-2);
+      coreOtherName[strlen(other)-2] = '\0';
+   }
+   else {
+      //coreOtherName = other;
+      if(strcmp(other, "int") == 0
+           || strcmp(other, "double") == 0
+           || strcmp(other, "bool") == 0
+           || strcmp(other, "string") == 0
+           || strcmp(other, "void") == 0
+           || strcmp(other, "null") == 0) {
+         //Primitive
+         type2 = 0;
+      }
+      else {
+         //Named
+         type2 = 1;
+      }
+   }
+
+
+   if (type1 != type2) {
+      return -1;
+   }
+   if (type1 == 0) {
+      return strcmp(typeName, other);
+   }
+   if (type1 == -1) {
+      return art1->GetElemType()->comparePolymorph(coreOtherName, rootscope);
+   }
+   if (type1 == 1) {
+      if (strcmp(nat1->GetName(), other) == 0) return 0;
+      else {
+        Decl* childDecl = rootscope->table->Lookup(other);
+	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
+        else {
+           printf("Unexpected null class definition %s\n", other);
            return -1;
         }
       }

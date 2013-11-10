@@ -127,7 +127,7 @@ class BreakStmt : public Stmt
   public:
     BreakStmt(yyltype loc) : Stmt(loc) {}
     const char *GetPrintNameForNode() { return "BreakStmt"; }
-    void BuildSymbolTable(SymbolTable *table) {}
+    void BuildSymbolTable(SymbolTable *table) { symboltable = table; }
     void ValidateDeclarations() {}
     void Check(SymbolTable *rootscope);
 };
@@ -141,7 +141,7 @@ class ReturnStmt : public Stmt
     ReturnStmt(yyltype loc, Expr *expr);
     const char *GetPrintNameForNode() { return "ReturnStmt"; }
     void PrintChildren(int indentLevel);
-    void BuildSymbolTable(SymbolTable *table) {}
+    void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations() {}
     void Check(SymbolTable *rootscope);
 };
@@ -155,7 +155,7 @@ class PrintStmt : public Stmt
     PrintStmt(List<Expr*> *arguments);
     const char *GetPrintNameForNode() { return "PrintStmt"; }
     void PrintChildren(int indentLevel);
-    void BuildSymbolTable(SymbolTable *table) {}
+    void BuildSymbolTable(SymbolTable *table);
     void ValidateDeclarations() {}
     void Check(SymbolTable *rootscope);
 };
@@ -170,9 +170,13 @@ class Case : public Node
     List<Stmt*> *stmts;
     
   public:
+    SymbolTable *symboltable;
     Case(IntConstant *v, List<Stmt*> *stmts);
     const char *GetPrintNameForNode() { return value ? "Case" :"Default"; }
     void PrintChildren(int indentLevel);
+    void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
+    void Check(SymbolTable *rootscope);
 };
 
 class SwitchStmt : public Stmt
@@ -185,8 +189,8 @@ class SwitchStmt : public Stmt
     SwitchStmt(Expr *e, List<Case*> *cases);
     const char *GetPrintNameForNode() { return "SwitchStmt"; }
     void PrintChildren(int indentLevel);
-    void BuildSymbolTable(SymbolTable *table) {}
-    void ValidateDeclarations() {}
+    void BuildSymbolTable(SymbolTable *table);
+    void ValidateDeclarations();
     void Check(SymbolTable *rootscope);
 };
 

@@ -162,19 +162,62 @@ void StmtBlock::BuildSymbolTable(SymbolTable *table) {
 }
 
 void IfStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
      body->BuildSymbolTable(symboltable);
      if (elseBody) elseBody->BuildSymbolTable(symboltable);
+
+     if (test) test->BuildSymbolTable(symboltable);
 }
 
 void WhileStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
      body->BuildSymbolTable(symboltable);
+
+     if (test) test->BuildSymbolTable(symboltable);
 }
 
 void ForStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
      body->BuildSymbolTable(symboltable);
+
+     if (test) test->BuildSymbolTable(symboltable);
+     if (init) init->BuildSymbolTable(symboltable);
+     if (step) step->BuildSymbolTable(symboltable);
 }
 
+void ReturnStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
 
+     if (expr) expr->BuildSymbolTable(symboltable);
+}
+
+void PrintStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
+     int i = 0;
+     for (; i < args->NumElements(); i++) args->Nth(i)->BuildSymbolTable(table);
+}
+
+void Case::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
+     int i = 0;
+     for (; i < stmts->NumElements(); i++) stmts->Nth(i)->BuildSymbolTable(table);
+}
+
+void SwitchStmt::BuildSymbolTable(SymbolTable *table) {
+     symboltable = table;
+
+     if (expr) expr->BuildSymbolTable(symboltable);
+
+     int i = 0;
+     for (; i < cases->NumElements(); i++) cases->Nth(i)->BuildSymbolTable(table);
+}
+
+//----------------
 
 void StmtBlock::ValidateDeclarations() {
      int i = 0;
@@ -202,6 +245,18 @@ void WhileStmt::ValidateDeclarations() {
 void ForStmt::ValidateDeclarations() {
      if (body) body->ValidateDeclarations();
 }
+
+void Case::ValidateDeclarations() {
+     int i = 0;
+     for (; i < stmts->NumElements(); i++) stmts->Nth(i)->ValidateDeclarations();
+}
+
+void SwitchStmt::ValidateDeclarations() {
+     int i = 0;
+     for (; i < cases->NumElements(); i++) cases->Nth(i)->ValidateDeclarations();
+}
+
+//----------------------
 
 void StmtBlock::Check(SymbolTable *rootscope) {
    if (stmts) {
@@ -233,6 +288,10 @@ void ReturnStmt::Check(SymbolTable *rootscope) {
 }
 
 void PrintStmt::Check(SymbolTable *rootscope) {
+
+}
+
+void Case::Check(SymbolTable *rootscope) {
 
 }
 

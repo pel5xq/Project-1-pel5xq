@@ -131,6 +131,8 @@ void FnDecl::BuildSymbolTable(SymbolTable *table) {
    if (body) body->BuildSymbolTable(parameterstable);
 }
 
+//-----------
+
 void ClassDecl::ValidateInterfaces() {
    int i = 0;
    for(;i<implements->NumElements();i++) {
