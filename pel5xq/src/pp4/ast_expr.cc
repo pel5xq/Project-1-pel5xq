@@ -335,7 +335,61 @@ void LogicalExpr::Check(SymbolTable *rootscope) {
 }
 
 void AssignExpr::Check(SymbolTable *rootscope) {
+   //Ignoring problems with array access types for 4620
+   left->Check(rootscope);
+   right->Check(rootscope);
+   const char* ltype = left->getTypeName();
+   const char* rtype = right->getTypeName();
 
+   if(strncmp(ltype, "int", 3) == 0
+      || strncmp(ltype, "double", 6) == 0
+      || strncmp(ltype, "bool", 4) == 0
+      || strncmp(ltype, "string", 6) == 0
+      || strncmp(ltype, "void", 4) == 0
+
+      || strncmp(rtype, "int", 3) == 0
+      || strncmp(rtype, "double", 6) == 0
+      || strncmp(rtype, "bool", 4) == 0
+      || strncmp(rtype, "string", 6) == 0
+      || strncmp(rtype, "void", 4) == 0) {
+
+      if (strcmp(ltype, rtype) != 0) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+
+   }
+   else {
+      //Need to change to remove array subtyping polymorphism?
+
+      //Deal with possible different numbers of [][]
+      //assuming null == object[][] not valid
+      if (!equalArrayDimensions(ltype, rtype)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+      else {
+         const char *coreLType = stripAway(ltype);
+         const char *coreRType = stripAway(rtype);
+         
+         if (strcmp(coreLType, coreRType) == 0
+             //|| strcmp(coreLType, "null") == 0
+             || strcmp(coreRType, "null") == 0) {
+            //Do nothing
+         }
+         else {
+           //Decl* lDecl = rootscope->table->Lookup(coreLType);
+           Decl* rDecl = rootscope->table->Lookup(coreRType);
+	   if (rDecl) {//lDecl && 
+              if (!(rDecl->isSubclassOf(coreLType) == 1)) {//lDecl->isSubclassOf(coreRType) == 1 || 
+                 ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+              }
+           }
+           else {
+              //printf("Unexpected null class definition (%s or %s)\n", coreLType, coreRType);
+              //Keep quiet, will have found earlier
+           }
+         }
+      }
+   }
 }
 
 void This::Check(SymbolTable *rootscope) {
@@ -677,7 +731,12 @@ void Call::Check(SymbolTable *rootscope) {
 }
 
 void NewExpr::Check(SymbolTable *rootscope) {
-
+   //only class is valid here
+   //ignoring case New(object[]) -- not even valid syntax?
+   ClassDecl* newclass = dynamic_cast<ClassDecl *>(rootscope->table->Lookup(cType->GetFullName()));
+   if (NULL == newclass) {
+      ReportError::Formatted(cType->GetLocation(), "No declaration found for class '%s'", cType->GetFullName());
+   }
 }
 
 void NewArrayExpr::Check(SymbolTable *rootscope) {
@@ -688,15 +747,20 @@ void NewArrayExpr::Check(SymbolTable *rootscope) {
 }
 
 void ReadIntegerExpr::Check(SymbolTable *rootscope) {
-
+   //Nothing needed?
 }
 
 void ReadLineExpr::Check(SymbolTable *rootscope) {
-
+   //Nothing needed?
 }
 
 void PostfixExpr::Check(SymbolTable *rootscope) {
-
+   //assuming only works on int or double
+   if (lvalue) lvalue->Check(rootscope);
+   const char* ltype = lvalue->getTypeName();
+   if (!(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
+      ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", ltype, op->GetTokenString());
+   }
 }
 
 //------------------------------------
