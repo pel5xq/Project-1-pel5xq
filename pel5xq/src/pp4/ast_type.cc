@@ -189,7 +189,9 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
       return strcmp(typeName, other->typeName);
    }
    if (type1 == -1) {
+      //need to remove array subtyping polymorphism?
       return art1->GetElemType()->comparePolymorph(art2->GetElemType(), rootscope);
+      //return strcmp(art1->GetFullName(), art2->GetFullName());
    }
    if (type1 == 1) {
       if (strcmp(nat1->GetName(), nat2->GetName()) == 0) return 0;
@@ -197,7 +199,8 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
         Decl* childDecl = rootscope->table->Lookup(nat2->GetName());
 	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
         else {
-           printf("Unexpected null class definition %s\n", nat2->GetName());
+           //printf("Unexpected null class definition %s\n", nat2->GetName());
+           //Keep quiet, will have found earlier
            return -1;
         }
       }
@@ -258,7 +261,10 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
       return strcmp(typeName, other);
    }
    if (type1 == -1) {
+      //need to remove array subtyping polymorphism?
       return art1->GetElemType()->comparePolymorph(coreOtherName, rootscope);
+      //printf("%s %s\n", art1->GetFullName(), other);
+      //return strcmp(art1->GetFullName(), other);
    }
    if (type1 == 1) {
       if (strcmp(nat1->GetName(), other) == 0) return 0;
@@ -266,7 +272,8 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
         Decl* childDecl = rootscope->table->Lookup(other);
 	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
         else {
-           printf("Unexpected null class definition %s\n", other);
+           //printf("Unexpected null class definition %s\n", other);
+           //Keep quiet, will have found earlier
            return -1;
         }
       }

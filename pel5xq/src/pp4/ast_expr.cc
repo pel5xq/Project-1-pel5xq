@@ -203,19 +203,135 @@ void PostfixExpr::BuildSymbolTable(SymbolTable *table) {
 //----------
 
 void ArithmeticExpr::Check(SymbolTable *rootscope) {
-
+   if (left) { 
+      left->Check(rootscope);
+      right->Check(rootscope);
+      const char* ltype = left->getTypeName();
+      const char* rtype = right->getTypeName();
+      if (strcmp(ltype, rtype) != 0
+          || !(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+   }
+   else { //Unary
+      right->Check(rootscope);
+      const char* rtype = right->getTypeName();
+      if (!(strcmp(rtype, "int") == 0 
+            || strcmp(rtype, "double") == 0)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", op->GetTokenString(), rtype);
+      }
+   }
 }
 
 void RelationalExpr::Check(SymbolTable *rootscope) {
+   left->Check(rootscope);
+   right->Check(rootscope);
+   const char* ltype = left->getTypeName();
+   const char* rtype = right->getTypeName();
+   if (strcmp(ltype, rtype) != 0
+       || !(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
+      ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+   }
+}
 
+bool Expr::equalArrayDimensions(const char *t1, const char *t2) {
+   if (NULL == strchr(t1, '[') && NULL == strchr(t2, '[')) return true;
+   if (!( NULL != strchr(t1, '[') && NULL != strchr(t2, '[') ) ) return false;
+   char* new1 = new char[strlen(t1)-1];
+   memcpy(new1, t1, strlen(t1)-2);
+   new1[strlen(t1)-2] = '\0';
+   char* new2 = new char[strlen(t2)-1];
+   memcpy(new2, t2, strlen(t2)-2);
+   new2[strlen(t2)-2] = '\0';
+   return equalArrayDimensions(new1, new2);
+}
+
+const char * Expr::stripAway(const char *t1) {
+   if (NULL == strchr(t1, '[')) return t1;
+   char* new1 = new char[strlen(t1)-1];
+   memcpy(new1, t1, strlen(t1)-2);
+   new1[strlen(t1)-2] = '\0';
+   return stripAway(new1);
 }
 
 void EqualityExpr::Check(SymbolTable *rootscope) {
+   left->Check(rootscope);
+   right->Check(rootscope);
+   const char* ltype = left->getTypeName();
+   const char* rtype = right->getTypeName();
+
+   if(strncmp(ltype, "int", 3) == 0
+      || strncmp(ltype, "double", 6) == 0
+      || strncmp(ltype, "bool", 4) == 0
+      || strncmp(ltype, "string", 6) == 0
+      || strncmp(ltype, "void", 4) == 0
+
+      || strncmp(rtype, "int", 3) == 0
+      || strncmp(rtype, "double", 6) == 0
+      || strncmp(rtype, "bool", 4) == 0
+      || strncmp(rtype, "string", 6) == 0
+      || strncmp(rtype, "void", 4) == 0) {
+
+      if (strcmp(ltype, rtype) != 0) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+
+   }
+   else {
+      //Need to change to remove array subtyping polymorphism?
+
+      //Deal with possible different numbers of [][]
+      //assuming null == object[][] not valid
+      if (!equalArrayDimensions(ltype, rtype)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+      else {
+         const char *coreLType = stripAway(ltype);
+         const char *coreRType = stripAway(rtype);
+         
+         if (strcmp(coreLType, coreRType) == 0
+             || strcmp(coreLType, "null") == 0
+             || strcmp(coreRType, "null") == 0) {
+            //Do nothing
+         }
+         else {
+           Decl* lDecl = rootscope->table->Lookup(coreLType);
+           Decl* rDecl = rootscope->table->Lookup(coreRType);
+	   if (lDecl && rDecl) {
+              if (!(lDecl->isSubclassOf(coreRType) == 1 || rDecl->isSubclassOf(coreLType) == 1)) {
+                 ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+              }
+           }
+           else {
+              //printf("Unexpected null class definition (%s or %s)\n", coreLType, coreRType);
+              //Keep quiet, will have found earlier
+           }
+         }
+
+      }
+
+   }
 
 }
 
 void LogicalExpr::Check(SymbolTable *rootscope) {
-
+   if (left) { 
+      left->Check(rootscope);
+      right->Check(rootscope);
+      const char* ltype = left->getTypeName();
+      const char* rtype = right->getTypeName();
+      if (strcmp(ltype, rtype) != 0
+          || !(strcmp(ltype, "boolean") == 0)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
+      }
+   }
+   else { //Unary
+      right->Check(rootscope);
+      const char* rtype = right->getTypeName();
+      if (!(strcmp(rtype, "boolean") == 0)) {
+         ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", op->GetTokenString(), rtype);
+      }
+   }
 }
 
 void AssignExpr::Check(SymbolTable *rootscope) {
@@ -240,7 +356,11 @@ void This::Check(SymbolTable *rootscope) {
 }
 
 void ArrayAccess::Check(SymbolTable *rootscope) {
-   //Ignoring arrays for 4620
+   //Mostly ignoring arrays for 4620
+   if (base) base->Check(rootscope);
+   if (subscript) subscript->Check(rootscope);
+   //Full implementation would check if base is an array
+   //and if subscript was integer
 }
 
 void FieldAccess::Check(SymbolTable *rootscope) {
@@ -307,8 +427,11 @@ void FieldAccess::Check(SymbolTable *rootscope) {
                      else {
                         FnDecl *fieldfd = dynamic_cast<FnDecl *>(fielddecl);
                         if (fieldfd) {
-                           printf("Its a function?\n");
-                           fieldType = fieldfd->GetType()->GetFullName();
+                           //Should be a variable
+                           //printf("Its a function?\n");
+                           //fieldType = fieldfd->GetType()->GetFullName();
+                           ReportError::Formatted(field->GetLocation(), "No declaration found for variable '%s'", field->GetName());
+                           fieldType = "error";
                         }
                         else {
                            printf("Unexpected non fn/var decl %s in class %s\n", field->GetName(), name);
@@ -329,8 +452,11 @@ void FieldAccess::Check(SymbolTable *rootscope) {
                      if (fielddecl) {
                         FnDecl *fieldfd = dynamic_cast<FnDecl *>(fielddecl);
                         if (fieldfd) {
-                           printf("Its a function?\n");
-                           fieldType = fieldfd->GetType()->GetFullName();
+                           //It should be a variable
+                           //printf("Its a function?\n");
+                           //fieldType = fieldfd->GetType()->GetFullName();
+                           ReportError::Formatted(field->GetLocation(), "No declaration found for variable '%s'", field->GetName());
+                           fieldType = "error";
                         }
                         else {
                            printf("Unexpected non fn decl %s in interface %s\n", field->GetName(), name);
@@ -363,8 +489,11 @@ void FieldAccess::Check(SymbolTable *rootscope) {
          else {
             FnDecl *fieldfd = dynamic_cast<FnDecl *>(fielddecl);
             if (fieldfd) {
-               printf("Its a function?\n");
-               fieldType = fieldfd->GetType()->GetFullName();
+               //Should be a variable
+               //printf("Its a function?\n");
+               //fieldType = fieldfd->GetType()->GetFullName();
+               ReportError::Formatted(field->GetLocation(), "No declaration found for variable '%s'", field->GetName());
+               fieldType = "error";
             }
             else {
                printf("Unexpected non fn/var decl %s\n", field->GetName());
@@ -426,10 +555,13 @@ void Call::Check(SymbolTable *rootscope) {
                   if (fielddecl) {
                      VarDecl *fieldvd = dynamic_cast<VarDecl *>(fielddecl);
                      if (fieldvd) {
-                        printf("Its a variable?\n");
-                        fieldType = fieldvd->GetType()->GetFullName();
+                        //Should be a function
+                        //printf("Its a variable?\n");
+                        //fieldType = fieldvd->GetType()->GetFullName();
+                        ReportError::Formatted(field->GetLocation(), "No declaration found for function '%s'", field->GetName());
+                        fieldType = "error"; 
                      
-                        bool isFromClass = false;
+                        /*bool isFromClass = false;
                         Node *parentNode = this;
                         while (NULL != (parentNode = parentNode->GetParent())) {
                            ClassDecl *parentDecl = dynamic_cast<ClassDecl *>(parentNode);
@@ -442,7 +574,7 @@ void Call::Check(SymbolTable *rootscope) {
                             ReportError::Formatted(GetLocation(), "%s field '%s' only accessible within class scope", 
                               name, field->GetName());
                             fieldType = "error"; //Mask here?
-                        }
+                        }*/
                      }
                      else {
                         FnDecl *fieldfd = dynamic_cast<FnDecl *>(fielddecl);
@@ -498,8 +630,11 @@ void Call::Check(SymbolTable *rootscope) {
 
          VarDecl *fieldvd = dynamic_cast<VarDecl *>(fielddecl);
          if (fieldvd) {
-            printf("Its a variable?\n");
-            fieldType = fieldvd->GetType()->GetFullName();            
+            //Should be a function
+            //printf("Its a variable?\n");
+            //fieldType = fieldvd->GetType()->GetFullName(); 
+            ReportError::Formatted(field->GetLocation(), "No declaration found for function '%s'", field->GetName());
+            fieldType = "error";           
          }
          else {
             FnDecl *fieldfd = dynamic_cast<FnDecl *>(fielddecl);
@@ -546,7 +681,10 @@ void NewExpr::Check(SymbolTable *rootscope) {
 }
 
 void NewArrayExpr::Check(SymbolTable *rootscope) {
-   //Ignoring arrays for 4620
+   //Mostly ignoring arrays for 4620
+   if (size) size->Check(rootscope);
+   //Full implementation would check if size was an integer
+   //and if elemType was a valid type
 }
 
 void ReadIntegerExpr::Check(SymbolTable *rootscope) {
@@ -564,10 +702,10 @@ void PostfixExpr::Check(SymbolTable *rootscope) {
 //------------------------------------
 //For all the getTypeName methods,
 //Assume already checked and return
-//the anticipated or leftmost type
+//the anticipated type
 
 const char* ArithmeticExpr::getTypeName() {
-   return left->getTypeName();
+   return right->getTypeName();
 }
 
 const char* RelationalExpr::getTypeName() {
@@ -603,14 +741,18 @@ const char* Call::getTypeName() {
 }
 
 const char* NewExpr::getTypeName() {
-   return NULL;
+   return cType->GetFullName();
 }
 
 const char* NewArrayExpr::getTypeName() {
-   return NULL;
+   const char *typeval = elemType->GetFullName();
+   char *retVal = new char[strlen(typeval)+2]; 
+   memcpy(retVal, typeval, strlen(typeval));
+   strcat(retVal, "[]");
+   return retVal;
 }
 
 const char* PostfixExpr::getTypeName() {
-   return NULL;
+   return lvalue->getTypeName();
 }
 

@@ -30,6 +30,8 @@ class Expr : public Stmt
     virtual void BuildSymbolTable(SymbolTable *table) { symboltable = table; }
     virtual void Check(SymbolTable *rootscope) {}
     virtual const char * getTypeName() {return NULL;}
+    static bool equalArrayDimensions(const char *t1, const char *t2);
+    static const char * stripAway(const char *t1);
     //SymbolTable *symboltable;
 };
 
@@ -119,6 +121,7 @@ class Operator : public Node
   public:
     Operator(yyltype loc, const char *tok);
     const char *GetPrintNameForNode() { return "Operator"; }
+    const char *GetTokenString() { return tokenString; }
     void PrintChildren(int indentLevel);
  };
  
