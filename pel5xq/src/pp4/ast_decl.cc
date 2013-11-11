@@ -275,8 +275,16 @@ void ClassDecl::ValidateExtensions(SymbolTable *covered) {
 }
 
 void FnDecl::ValidateDeclarations() {
-   if (!returnType->isPrimitiveType() && NULL == symboltable->Find(returnType->GetCoreName())) {
+   Decl *isaDecl = symboltable->Find(returnType->GetCoreName());
+   if (!returnType->isPrimitiveType() && NULL == isaDecl) {
       ReportError::Formatted(returnType->GetLocation(), "No declaration found for type '%s'", returnType->GetCoreName());
+   }
+   else if (NULL != isaDecl) {
+      ClassDecl *isaClass = dynamic_cast<ClassDecl *>(isaDecl);
+      InterfaceDecl *isaInter = dynamic_cast<InterfaceDecl *>(isaDecl);
+      if (!(isaClass || isaInter)) {
+         ReportError::Formatted(returnType->GetLocation(), "No declaration found for type '%s'", returnType->GetCoreName());
+      }
    }
 
    if (formals) {
@@ -290,8 +298,16 @@ void FnDecl::ValidateDeclarations() {
 }
 
 void VarDecl::ValidateDeclarations() {
-   if (!type->isPrimitiveType() && NULL == symboltable->Find(type->GetCoreName())) {
+   Decl *isaDecl = symboltable->Find(type->GetCoreName());
+   if (!type->isPrimitiveType() && NULL == isaDecl) {
       ReportError::Formatted(type->GetCoreType()->GetLocation(), "No declaration found for type '%s'", type->GetCoreName());
+   }
+   else if (NULL != isaDecl) {
+      ClassDecl *isaClass = dynamic_cast<ClassDecl *>(isaDecl);
+      InterfaceDecl *isaInter = dynamic_cast<InterfaceDecl *>(isaDecl);
+      if (!(isaClass || isaInter)) {
+         ReportError::Formatted(type->GetCoreType()->GetLocation(), "No declaration found for type '%s'", type->GetCoreName());
+      }
    }
 }
 
