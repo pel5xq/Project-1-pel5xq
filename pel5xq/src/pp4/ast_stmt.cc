@@ -9,6 +9,7 @@
 #include "symboltable.h"
 #include "list.h"
 #include <string>
+#include "errors.h"
  
 
 Program::Program(List<Decl*> *d) {
@@ -268,33 +269,157 @@ void StmtBlock::Check(SymbolTable *rootscope) {
 }
 
 void ForStmt::Check(SymbolTable *rootscope) {
+   test->Check(rootscope);
+   if (strcmp(test->getTypeName(), "bool") != 0) {
+      ReportError::Formatted(test->GetLocation(), "Test expression must have boolean type");
+   }
+   
+   if (init) init->Check(rootscope);
+   if (step) step->Check(rootscope);
 
+   if (body) body->Check(rootscope);
 }
 
 void WhileStmt::Check(SymbolTable *rootscope) {
-
+   test->Check(rootscope);
+   if (strcmp(test->getTypeName(), "bool") != 0) {
+      ReportError::Formatted(test->GetLocation(), "Test expression must have boolean type");
+   }
+   
+   if (body) body->Check(rootscope);
 }
 
 void IfStmt::Check(SymbolTable *rootscope) {
-
+   test->Check(rootscope);
+   if (strcmp(test->getTypeName(), "bool") != 0) {
+      ReportError::Formatted(test->GetLocation(), "Test expression must have boolean type");
+   }
+   
+   if (body) body->Check(rootscope);
+   if (elseBody) elseBody->Check(rootscope);
 }
 
 void BreakStmt::Check(SymbolTable *rootscope) {
-
+   bool isFromLoop = false;
+   Node *parentNode = this;
+   while (NULL != (parentNode = parentNode->GetParent())) {
+       WhileStmt *parentWStmt = dynamic_cast<WhileStmt *>(parentNode);
+       ForStmt *parentFStmt = dynamic_cast<ForStmt *>(parentNode);
+       SwitchStmt *parentSStmt = dynamic_cast<SwitchStmt *>(parentNode);
+       if (NULL != parentWStmt || NULL != parentFStmt || NULL != parentSStmt) { //added switch too
+          isFromLoop = true;
+          break;
+       }
+   }
+   if (!isFromLoop) {
+      ReportError::Formatted(GetLocation(), "break is only allowed inside a loop");
+   }
 }
 
 void ReturnStmt::Check(SymbolTable *rootscope) {
+   expr->Check(rootscope);
+   
+   const char* rtype = expr->getTypeName();
+   const char* ltype = "error";
+
+   Node *parentNode = this;
+   while (NULL != (parentNode = parentNode->GetParent())) {
+       FnDecl *parentDecl = dynamic_cast<FnDecl *>(parentNode);
+       if (NULL != parentDecl) {
+          ltype = parentDecl->GetType()->GetFullName();
+          break;
+       }
+   }
+
+   if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+   else if(strncmp(ltype, "int", 3) == 0
+      || strncmp(ltype, "double", 6) == 0
+      || strncmp(ltype, "bool", 4) == 0
+      || strncmp(ltype, "string", 6) == 0
+      || strcmp(ltype, "void") == 0
+
+      || strncmp(rtype, "int", 3) == 0
+      || strncmp(rtype, "double", 6) == 0
+      || strncmp(rtype, "bool", 4) == 0
+      || strncmp(rtype, "string", 6) == 0
+      || strcmp(rtype, "void") == 0) {
+
+      if (strcmp(ltype, rtype) != 0) {
+         if (strcmp(rtype, "void") == 0) {
+            ReportError::Formatted(GetLocation(), "Incompatible return: %s given, %s expected", rtype, ltype);
+         }
+         else {
+            ReportError::Formatted(expr->GetLocation(), "Incompatible return: %s given, %s expected", rtype, ltype);
+         }
+      }
+
+   }
+   else {
+      //Need to change to remove array subtyping polymorphism?
+
+      //Deal with possible different numbers of [][]
+      //assuming return null for object[][] not valid
+      if (!Expr::equalArrayDimensions(ltype, rtype)) {
+         ReportError::Formatted(expr->GetLocation(), "Incompatible return: %s given, %s expected", rtype, ltype);
+      }
+      else {
+         const char *coreLType = Expr::stripAway(ltype);
+         const char *coreRType = Expr::stripAway(rtype);
+         
+         if (strcmp(coreLType, coreRType) == 0
+             //|| strcmp(coreLType, "null") == 0
+             || strcmp(coreRType, "null") == 0) {
+            //Do nothing
+         }
+         else {
+            //Decl* lDecl = rootscope->table->Lookup(coreLType);
+            Decl* rDecl = rootscope->table->Lookup(coreRType);
+            if (rDecl) {//lDecl && 
+               if (!(rDecl->isSubclassOf(coreLType) == 1)) {//lDecl->isSubclassOf(coreRType) == 1 || 
+                  ReportError::Formatted(expr->GetLocation(), "Incompatible return: %s given, %s expected", rtype, ltype);
+               }
+            }
+            else {
+               //printf("Unexpected null class definition (%s or %s)\n", coreLType, coreRType);
+               //Keep quiet, will have found earlier
+            }
+         }
+      }
+   }
 
 }
 
 void PrintStmt::Check(SymbolTable *rootscope) {
-
+   int i = 0;
+   for (; i < args->NumElements(); i++) {
+      args->Nth(i)->Check(rootscope);
+      const char * name = args->Nth(i)->getTypeName();
+      if (strcmp(name, "error") == 0) {} //Mask
+      else if(!(strcmp(name, "int") == 0
+           || strcmp(name, "bool") == 0
+           || strcmp(name, "string") == 0)) {
+         ReportError::Formatted(args->Nth(i)->GetLocation(), 
+            "Incompatible argument %d: %s given, int/bool/string expected", i+1, name);
+      }
+   }
 }
 
 void Case::Check(SymbolTable *rootscope) {
-
+int i = 0;
+   for (; i < stmts->NumElements(); i++) {
+      stmts->Nth(i)->Check(rootscope);
+   } //No other checks specified in literature?
 }
 
 void SwitchStmt::Check(SymbolTable *rootscope) {
+   expr->Check(rootscope);
 
+   if (strcmp(expr->getTypeName(), "int") != 0) {
+      ReportError::Formatted(expr->GetLocation(), "Switch expression must have int type");
+   }
+
+   int i = 0;
+   for (; i < cases->NumElements(); i++) {
+      cases->Nth(i)->Check(rootscope);
+   }
 }

@@ -196,6 +196,7 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
    if (type1 == 1) {
       if (strcmp(nat1->GetName(), nat2->GetName()) == 0) return 0;
       else {
+        if (strcmp(nat2->GetName(), "null")==0) return 0; //Valid to use null for object
         Decl* childDecl = rootscope->table->Lookup(nat2->GetName());
 	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
         else {
@@ -243,7 +244,7 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
            || strcmp(other, "bool") == 0
            || strcmp(other, "string") == 0
            || strcmp(other, "void") == 0
-           || strcmp(other, "null") == 0) {
+           ) {//|| strcmp(other, "null") == 0
          //Primitive
          type2 = 0;
       }
@@ -269,6 +270,7 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
    if (type1 == 1) {
       if (strcmp(nat1->GetName(), other) == 0) return 0;
       else {
+        if (strcmp(other, "null")==0) return 0; //Valid to use null for object
         Decl* childDecl = rootscope->table->Lookup(other);
 	if (childDecl) return (childDecl->isSubclassOf(nat1->GetName()) - 1);//turn 1/0 into 0/-1
         else {

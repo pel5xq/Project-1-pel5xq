@@ -208,7 +208,8 @@ void ArithmeticExpr::Check(SymbolTable *rootscope) {
       right->Check(rootscope);
       const char* ltype = left->getTypeName();
       const char* rtype = right->getTypeName();
-      if (strcmp(ltype, rtype) != 0
+      if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+      else if (strcmp(ltype, rtype) != 0
           || !(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
          ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
       }
@@ -216,7 +217,8 @@ void ArithmeticExpr::Check(SymbolTable *rootscope) {
    else { //Unary
       right->Check(rootscope);
       const char* rtype = right->getTypeName();
-      if (!(strcmp(rtype, "int") == 0 
+      if (strcmp(rtype, "error") == 0) {} //Mask error
+      else if (!(strcmp(rtype, "int") == 0 
             || strcmp(rtype, "double") == 0)) {
          ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", op->GetTokenString(), rtype);
       }
@@ -228,7 +230,8 @@ void RelationalExpr::Check(SymbolTable *rootscope) {
    right->Check(rootscope);
    const char* ltype = left->getTypeName();
    const char* rtype = right->getTypeName();
-   if (strcmp(ltype, rtype) != 0
+   if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+   else if (strcmp(ltype, rtype) != 0
        || !(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
       ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
    }
@@ -259,8 +262,8 @@ void EqualityExpr::Check(SymbolTable *rootscope) {
    right->Check(rootscope);
    const char* ltype = left->getTypeName();
    const char* rtype = right->getTypeName();
-
-   if(strncmp(ltype, "int", 3) == 0
+   if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+   else if(strncmp(ltype, "int", 3) == 0
       || strncmp(ltype, "double", 6) == 0
       || strncmp(ltype, "bool", 4) == 0
       || strncmp(ltype, "string", 6) == 0
@@ -320,28 +323,31 @@ void LogicalExpr::Check(SymbolTable *rootscope) {
       right->Check(rootscope);
       const char* ltype = left->getTypeName();
       const char* rtype = right->getTypeName();
-      if (strcmp(ltype, rtype) != 0
-          || !(strcmp(ltype, "boolean") == 0)) {
+      if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+      else if (strcmp(ltype, rtype) != 0
+          || !(strcmp(ltype, "bool") == 0)) {
          ReportError::Formatted(op->GetLocation(), "Incompatible operands: %s %s %s", ltype, op->GetTokenString(), rtype);
       }
    }
    else { //Unary
       right->Check(rootscope);
       const char* rtype = right->getTypeName();
-      if (!(strcmp(rtype, "boolean") == 0)) {
+      if (strcmp(rtype, "error") == 0) {} //Mask error
+      else if (!(strcmp(rtype, "bool") == 0)) {
          ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", op->GetTokenString(), rtype);
       }
    }
 }
 
 void AssignExpr::Check(SymbolTable *rootscope) {
-   //Ignoring problems with array access types for 4620
+   //Ignoring problems with array access types for 4620?
    left->Check(rootscope);
    right->Check(rootscope);
    const char* ltype = left->getTypeName();
    const char* rtype = right->getTypeName();
 
-   if(strncmp(ltype, "int", 3) == 0
+   if (strcmp(ltype, "error") == 0 || strcmp(rtype, "error") == 0) {} //Mask error
+   else if(strncmp(ltype, "int", 3) == 0
       || strncmp(ltype, "double", 6) == 0
       || strncmp(ltype, "bool", 4) == 0
       || strncmp(ltype, "string", 6) == 0
@@ -758,7 +764,8 @@ void PostfixExpr::Check(SymbolTable *rootscope) {
    //assuming only works on int or double
    if (lvalue) lvalue->Check(rootscope);
    const char* ltype = lvalue->getTypeName();
-   if (!(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
+   if (strcmp(ltype, "error") == 0) {} //Mask error
+   else if (!(strcmp(ltype, "int") == 0 || strcmp(ltype, "double") == 0)) {
       ReportError::Formatted(op->GetLocation(), "Incompatible operand: %s %s", ltype, op->GetTokenString());
    }
 }
@@ -773,15 +780,15 @@ const char* ArithmeticExpr::getTypeName() {
 }
 
 const char* RelationalExpr::getTypeName() {
-   return "boolean";
+   return "bool";
 }
 
 const char* EqualityExpr::getTypeName() {
-   return "boolean";
+   return "bool";
 }
 
 const char* LogicalExpr::getTypeName() {
-   return "boolean";
+   return "bool";
 }
 
 const char* AssignExpr::getTypeName() {

@@ -43,7 +43,7 @@ class EmptyExpr : public Expr
   public:
     const char *GetPrintNameForNode() { return "Empty"; }
     void Check(SymbolTable *rootscope) {}
-    const char * getTypeName() {return "none";}
+    const char * getTypeName() {return "void";}
     void BuildSymbolTable(SymbolTable *table) { symboltable = table; }
 };
 
@@ -85,7 +85,7 @@ class BoolConstant : public Expr
     const char *GetPrintNameForNode() { return "BoolConstant"; }
     void PrintChildren(int indentLevel);
     void Check(SymbolTable *rootscope) {}
-    const char * getTypeName() {return "boolean";}
+    const char * getTypeName() {return "bool";}
     void BuildSymbolTable(SymbolTable *table) { symboltable = table; }
 };
 
