@@ -518,7 +518,7 @@ void FieldAccess::Check(SymbolTable *rootscope) {
                            fieldType = "error";
                         }
                         else {
-                           printf("Unexpected non fn/var decl %s in class %s\n", field->GetName(), name);
+                           //printf("Unexpected non fn/var decl %s in class %s\n", field->GetName(), name);
                            fieldType = "error";
                         }
                      }
@@ -543,7 +543,7 @@ void FieldAccess::Check(SymbolTable *rootscope) {
                            fieldType = "error";
                         }
                         else {
-                           printf("Unexpected non fn decl %s in interface %s\n", field->GetName(), name);
+                           //printf("Unexpected non fn decl %s in interface %s\n", field->GetName(), name);
                            fieldType = "error";
                         }
                      }
@@ -554,7 +554,7 @@ void FieldAccess::Check(SymbolTable *rootscope) {
 
                   }
                   else {
-                     printf("Unexpected nonexistent class/interface (from call) %s\n", name);
+                     //printf("Unexpected nonexistent class/interface (from call) %s\n", name);
                      fieldType = "error";
                   }
                }
@@ -580,7 +580,7 @@ void FieldAccess::Check(SymbolTable *rootscope) {
                fieldType = "error";
             }
             else {
-               printf("Unexpected non fn/var decl %s\n", field->GetName());
+               //printf("Unexpected non fn/var decl %s\n", field->GetName());
                fieldType = "error";
             }
          }
@@ -610,7 +610,7 @@ void Call::Check(SymbolTable *rootscope) {
       if(name == NULL) {
          //Should this case even be reached?
          //FieldAccess *basefa = dynamic_cast<FieldAccess *>(base);         
-         printf("Unexpected null type name in call\n");
+         //printf("Unexpected null type name in call\n");
          /*ClassDecl *baseclass = dynamic_cast<ClassDecl *>(rootscope->table->Lookup(name));
          if (baseclass) {
          ... if want to bring this case back*/
@@ -674,7 +674,7 @@ void Call::Check(SymbolTable *rootscope) {
                            actualFD = fieldfd;
                         }
                         else {
-                           printf("Unexpected non fn/var decl %s in class %s\n", field->GetName(), name);
+                           //printf("Unexpected non fn/var decl %s in class %s\n", field->GetName(), name);
                            fieldType = "error";
                         }
                      }
@@ -696,7 +696,7 @@ void Call::Check(SymbolTable *rootscope) {
                            actualFD = fieldfd;
                         }
                         else {
-                           printf("Unexpected non fn decl %s in interface %s\n", field->GetName(), name);
+                           //printf("Unexpected non fn decl %s in interface %s\n", field->GetName(), name);
                            fieldType = "error";
                         }
                      }
@@ -707,7 +707,7 @@ void Call::Check(SymbolTable *rootscope) {
 
                   }
                   else {
-                     printf("Unexpected nonexistent class/interface (from call) %s\n", name);
+                     //printf("Unexpected nonexistent class/interface (from call) %s\n", name);
                      fieldType = "error";
                   }
                }
@@ -734,7 +734,7 @@ void Call::Check(SymbolTable *rootscope) {
                actualFD = fieldfd;
             }
             else {
-               printf("Unexpected non fn/var decl %s\n", field->GetName());
+               //printf("Unexpected non fn/var decl %s\n", field->GetName());
                fieldType = "error";
             }
          }
@@ -748,7 +748,7 @@ void Call::Check(SymbolTable *rootscope) {
 
    //Deal with actuals
    if (actualFD) {
-      if (!actuals) printf("Unexpected NULL actuals\n");
+      if (!actuals) ;//printf("Unexpected NULL actuals\n");
       if (actualFD->GetFormals()->NumElements() != actuals->NumElements()) {
          ReportError::Formatted(field->GetLocation(), "Function '%s' expects %d arguments but %d given", 
 	    actualFD->GetName(), actualFD->GetFormals()->NumElements(), actuals->NumElements());
@@ -777,10 +777,23 @@ void NewExpr::Check(SymbolTable *rootscope) {
 }
 
 void NewArrayExpr::Check(SymbolTable *rootscope) {
-   //Mostly ignoring arrays for 4620
    if (size) size->Check(rootscope);
-   //Full implementation would check if size was an integer
-   //and if elemType was a valid type
+   
+   if (strcmp(size->getTypeName(), "int") != 0) {
+      ReportError::Formatted(size->GetLocation(), "Size for NewArray must be an integer");
+   }
+
+   Decl *newdecl = rootscope->table->Lookup(elemType->GetCoreName());
+   const char * name = elemType->GetFullName();
+   ClassDecl* newclass = dynamic_cast<ClassDecl *>(newdecl);
+   InterfaceDecl* newinter = dynamic_cast<InterfaceDecl *>(newdecl);
+   if (! (NULL != newclass || NULL != newinter || 
+           strncmp(name, "int", 3) == 0
+           || strncmp(name, "double", 6) == 0
+           || strncmp(name, "bool", 4) == 0
+           || strncmp(name, "string", 6) == 0)) {
+      ReportError::Formatted(elemType->GetLocation(), "No declaration found for type '%s'", elemType->GetFullName());
+   }
 }
 
 void ReadIntegerExpr::Check(SymbolTable *rootscope) {

@@ -113,7 +113,7 @@ int Type::compare(Type *other) {
       if (NULL == nat1) {
          art1 = dynamic_cast<ArrayType *>(this);
             if (NULL == art1) {
-		printf("Unexpected case, assuming unequal\n");
+		//printf("Unexpected case, assuming unequal\n");
                 return -1;
             }
             else type1 = -1;
@@ -127,7 +127,7 @@ int Type::compare(Type *other) {
       if (NULL == nat2) {
          art2 = dynamic_cast<ArrayType *>(other);
             if (NULL == art2) {
-		printf("Unexpected case, assuming unequal\n");
+		//printf("Unexpected case, assuming unequal\n");
                 return -1;
             }
             else type2 = -1;
@@ -162,7 +162,7 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
       if (NULL == nat1) {
          art1 = dynamic_cast<ArrayType *>(this);
             if (NULL == art1) {
-		printf("Unexpected case, assuming unequal\n");
+		//printf("Unexpected case, assuming unequal\n");
                 return -1;
             }
             else type1 = -1;
@@ -176,7 +176,7 @@ int Type::comparePolymorph(Type *other, SymbolTable *rootscope) { //other must b
       if (NULL == nat2) {
          art2 = dynamic_cast<ArrayType *>(other);
             if (NULL == art2) {
-		printf("Unexpected case, assuming unequal\n");
+		//printf("Unexpected case, assuming unequal\n");
                 return -1;
             }
             else type2 = -1;
@@ -222,7 +222,7 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
       if (NULL == nat1) {
          art1 = dynamic_cast<ArrayType *>(this);
             if (NULL == art1) {
-		printf("Unexpected case, assuming unequal\n");
+		//printf("Unexpected case, assuming unequal\n");
                 return -1;
             }
             else type1 = -1;
