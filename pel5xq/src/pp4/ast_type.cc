@@ -52,9 +52,11 @@ const char* Type::GetFullName() {
             }
             else {
                const char *typeval = art1->GetElemType()->GetFullName();
-               char *retVal = new char[strlen(typeval)+2]; 
+               char *retVal = new char[strlen(typeval)+3]; 
                memcpy(retVal, typeval, strlen(typeval));
-               strcat(retVal, "[]");
+               retVal[strlen(typeval)] = '[';
+               retVal[strlen(typeval)+1] = ']';
+               retVal[strlen(typeval)+2] = '\0';
                return retVal;
             }
       }

@@ -849,10 +849,12 @@ const char* NewExpr::getTypeName() {
 }
 
 const char* NewArrayExpr::getTypeName() {
-   const char *typeval = elemType->GetFullName();
-   char *retVal = new char[strlen(typeval)+2]; 
+   const char *typeval = elemType->GetFullName(); 
+   char *retVal = new char[strlen(typeval)+3]; 
    memcpy(retVal, typeval, strlen(typeval));
-   strcat(retVal, "[]");
+   retVal[strlen(typeval)] = '[';
+   retVal[strlen(typeval)+1] = ']';
+   retVal[strlen(typeval)+2] = '\0';
    return retVal;
 }
 
