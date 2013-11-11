@@ -2,8 +2,5 @@ Notes on PP4
 
 The error output will differ from the provided output in the following ways:
 - With arrays/strings not needing to be implemented for 4620, errors about using integers in NewArray and array subscripting, the .length() method for arrays, and other such errors will differ from the expected output.
-
-
-From PP3:
 - For checking inherited type signatures, classes are checked before interfaces. This casues an order difference in my error output from the norm.
-- For checking missing declarations, classes are checked, then interfaces, then functions. This causes an order difference in my error output from the norm.
+- For checking declarations, classes are checked, then interfaces, then functions. This causes an order difference in my error output from the norm (for example, bad11 will differ).

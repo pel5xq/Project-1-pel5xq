@@ -154,14 +154,16 @@ void ClassDecl::ValidateInterfaces() {
         while ((decl = iter.GetNextValue()) != NULL) {
            Decl *classfn = bodytable->table->Lookup(decl->GetName());
            if (NULL == classfn) {
-              if (!errStated) ReportError::Formatted(GetLocation(), "Class '%s' does not implement entire interface '%s'", 
+              if (!errStated) ReportError::Formatted(implements->Nth(i)->GetLocation(), 
+                    "Class '%s' does not implement entire interface '%s'", 
 		GetName(), intdecl->GetName());
               errStated = true;
               continue;
            } //If definition exists, check that it is a method and has right parameters 
            FnDecl *classfunct = dynamic_cast<FnDecl *>(classfn);
            if (NULL == classfunct) { //TODO Should the error be interface definition or conflicting declaration?
-              if (!errStated) ReportError::Formatted(GetLocation(), "Class '%s' does not implement entire interface '%s'", 
+              if (!errStated) ReportError::Formatted(implements->Nth(i)->GetLocation(), 
+                    "Class '%s' does not implement entire interface '%s'", 
 		GetName(), intdecl->GetName());
               errStated = true;
               continue;
