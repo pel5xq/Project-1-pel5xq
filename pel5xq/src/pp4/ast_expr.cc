@@ -594,6 +594,12 @@ void FieldAccess::Check(SymbolTable *rootscope) {
 }
 
 void Call::Check(SymbolTable *rootscope) {
+   //Check actuals first
+   int z = 0;
+   for (; z < actuals->NumElements(); z++) {
+      actuals->Nth(z)->Check(rootscope);
+   }
+
    //Deal with base/field as above
    FnDecl *actualFD = NULL;
    if (base) {
@@ -751,7 +757,7 @@ void Call::Check(SymbolTable *rootscope) {
          int i = 0;
          for (; i < actuals->NumElements(); i++) {
             Expr *actual = actuals->Nth(i);
-            actual->Check(rootscope);
+            //actual->Check(rootscope); // Checked first instead
             if( actualFD->GetFormals()->Nth(i)->GetType()->comparePolymorph(actual->getTypeName(), rootscope) != 0) {
                ReportError::Formatted(actual->GetLocation(), "Incompatible argument %d: %s given, %s expected", 
 	          i+1, actual->getTypeName(), actualFD->GetFormals()->Nth(i)->GetType()->GetFullName());
