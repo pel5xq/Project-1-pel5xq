@@ -240,20 +240,36 @@ void RelationalExpr::Check(SymbolTable *rootscope) {
 bool Expr::equalArrayDimensions(const char *t1, const char *t2) {
    if (NULL == strchr(t1, '[') && NULL == strchr(t2, '[')) return true;
    if (!( NULL != strchr(t1, '[') && NULL != strchr(t2, '[') ) ) return false;
-   char* new1 = new char[strlen(t1)-1];
-   memcpy(new1, t1, strlen(t1)-2);
-   new1[strlen(t1)-2] = '\0';
-   char* new2 = new char[strlen(t2)-1];
-   memcpy(new2, t2, strlen(t2)-2);
-   new2[strlen(t2)-2] = '\0';
+   /*char* new1 = new char[strlen(t1)-2];
+   memcpy(new1, t1, strlen(t1)-3);
+   new1[strlen(t1)-3] = '\0';
+   char* new2 = new char[strlen(t2)-2];
+   memcpy(new2, t2, strlen(t2)-3);
+   new2[strlen(t2)-3] = '\0';*/
+
+   int newlength = strrchr(t1, '[')-t1;
+   char * new1 = new char[newlength+1];
+   memcpy(new1, t1, newlength);
+   new1[newlength] = '\0';
+   int newlength2 = strrchr(t2, '[')-t2;
+   char * new2 = new char[newlength2+1];
+   memcpy(new2, t2, newlength2);
+   new2[newlength2] = '\0';
+
    return equalArrayDimensions(new1, new2);
 }
 
 const char * Expr::stripAway(const char *t1) {
    if (NULL == strchr(t1, '[')) return t1;
-   char* new1 = new char[strlen(t1)-1];
-   memcpy(new1, t1, strlen(t1)-2);
-   new1[strlen(t1)-2] = '\0';
+
+   int newlength = strrchr(t1, '[')-t1;
+   char * new1 = new char[newlength+1];
+   memcpy(new1, t1, newlength);
+   new1[newlength] = '\0';
+
+   //char* new1 = new char[strlen(t1)-2];
+   //memcpy(new1, t1, strlen(t1)-3);
+   //new1[strlen(t1)-3] = '\0';
    return stripAway(new1);
 }
 
@@ -416,10 +432,18 @@ void This::Check(SymbolTable *rootscope) {
 }
 
 void ArrayAccess::Check(SymbolTable *rootscope) {
-   //Mostly ignoring arrays for 4620
-   if (base) base->Check(rootscope);
-   if (subscript) subscript->Check(rootscope);
-   //Full implementation would check if base is an array
+   if (base) {
+      base->Check(rootscope);
+      if (NULL == strchr(base->getTypeName(), '[')) {
+         ReportError::Formatted(base->GetLocation(), "[] can only be applied to arrays");
+      }
+   }
+   if (subscript) {
+      subscript->Check(rootscope);
+      if (strcmp(subscript->getTypeName(), "int") != 0) {
+         ReportError::Formatted(subscript->GetLocation(), "Array subscript must be an integer");
+      }
+   }
    //and if subscript was integer
 }
 
@@ -598,13 +622,14 @@ void Call::Check(SymbolTable *rootscope) {
            || strncmp(name, "string", 6) == 0
            || strncmp(name, "void", 4) == 0
            || strcmp(name, "null") == 0) {
-            ReportError::Formatted(field->GetLocation(), "%s has no such field '%s'", name, field->GetName());
-            fieldType = "error";
-           //For 4620, ignoring array length case here
+           //if (!(NULL != strchr(name, '[') && strcmp(field->GetName(), "length"))) {
+               ReportError::Formatted(field->GetLocation(), "%s has no such field '%s'", name, field->GetName());
+               fieldType = "error"; 
+            //} //ignoring array.length()
          }
          else {
             //Check if array of classes instead of class
-            if (NULL != strchr(name, '[')) {
+            if (NULL != strchr(name, '[') ) {//&& !strcmp(field->GetName(), "length")) {
                ReportError::Formatted(field->GetLocation(), "%s has no such field '%s'", name, field->GetName());
                fieldType = "error";
             }
@@ -800,7 +825,15 @@ const char* This::getTypeName() {
 }
 
 const char* ArrayAccess::getTypeName() {
-   return base->getTypeName(); //Ignoring arrays for 4620
+   if (NULL == strchr(base->getTypeName(), '[')) {
+      return "error";
+   }
+   const char * other = base->getTypeName();
+   int newlength = strrchr(other, '[')-other;
+   char * coreOtherName = new char[newlength+1];
+   memcpy(coreOtherName, other, newlength);
+   coreOtherName[newlength] = '\0';
+   return coreOtherName;
 }
 
 const char* FieldAccess::getTypeName() {

@@ -233,9 +233,13 @@ int Type::comparePolymorph(const char *other, SymbolTable *rootscope) { //other 
       //Array
       //Need to only pop one [] off, to make comparing a[] to a[][] work
       type2 = -1;
-      coreOtherName = new char[strlen(other)-1];
-      memcpy(coreOtherName, other, strlen(other)-2);
-      coreOtherName[strlen(other)-2] = '\0';
+      //coreOtherName = new char[strlen(other)-2];
+      //memcpy(coreOtherName, other, strlen(other)-3);
+      //coreOtherName[strlen(other)-3] = '\0';
+      int newlength = strrchr(other, '[')-other;
+      coreOtherName = new char[newlength+1];
+      memcpy(coreOtherName, other, newlength);
+      coreOtherName[newlength] = '\0';
    }
    else {
       //coreOtherName = other;
