@@ -24,6 +24,13 @@ char *CodeGenerator::NewLabel()
   return strdup(temp);
 }
 
+const char *CodeGenerator::LabelForName(const char* name) {
+  if (0 == strcmp(name, "main")) return name;
+  char *temp = new char[strlen(name)+1];
+  sprintf(temp, "_%s", name);
+  return temp;
+}
+
 
 Location *CodeGenerator::GenTempVar()
 {

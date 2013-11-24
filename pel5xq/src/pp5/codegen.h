@@ -53,6 +53,8 @@ class CodeGenerator {
          // generate any Tac instructions (see GenLabel below if needed)
     char *NewLabel();
 
+    const char *LabelForName(const char* name);
+
     
          // Creates and returns a Location for a new uniquely named
          // temp variable. Does not generate any Tac instructions

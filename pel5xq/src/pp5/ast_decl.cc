@@ -411,12 +411,14 @@ void InterfaceDecl::Emit(CodeGenerator *codegen) {
   //Not implemented for pp5
 }
 
-void FnDecl::Emit(CodeGenerator *codegen) { //add _ before non main labels?
+void FnDecl::Emit(CodeGenerator *codegen) { //check if is in class
   Decl::Emit(codegen);
   int tempoffset = codegen->currentOffset;
   codegen->currentOffset = 0;
   int tmpbefore = codegen->nextTempNum;
-  codegen->GenLabel(GetName());
+  
+  codegen->GenLabel(codegen->LabelForName(GetName()));
+
   BeginFunc *bfunc = codegen->GenBeginFunc();
   if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i);
   if (body) body->Emit(codegen);

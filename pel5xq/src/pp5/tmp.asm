@@ -3,12 +3,12 @@
 	  .align 2
 	  .globl main
   main:
-	# BeginFunc 28
+	# BeginFunc 24
 	  subu $sp, $sp, 8	# decrement sp to make space to save ra, fp
 	  sw $fp, 8($sp)	# save fp
 	  sw $ra, 4($sp)	# save ra
 	  addiu $fp, $sp, 8	# set up new fp
-	  subu $sp, $sp, 28	# decrement sp to make space for locals/temps
+	  subu $sp, $sp, 24	# decrement sp to make space for locals/temps
 	# _tmp0 = "hello"
 	  .data			# create string constant marked with label
 	  _string1: .asciiz "hello"
@@ -32,8 +32,8 @@
 	  subu $sp, $sp, 4	# decrement sp to make space for param
 	  lw $t0, -20($fp)	# fill _tmp1 to $t0 from $fp-20
 	  sw $t0, 4($sp)	# copy param value to stack
-	# _tmp3 = LCall test
-	  jal test           	# jump to function
+	# _tmp3 = LCall _test
+	  jal _test          	# jump to function
 	  move $t2, $v0		# copy function return value from $v0
 	  sw $t2, -28($fp)	# spill _tmp3 from $t2 to $fp-28
 	# PopParams 8
@@ -47,20 +47,6 @@
 	  sw $t0, 4($sp)	# copy param value to stack
 	# LCall _PrintInt
 	  jal _PrintInt      	# jump to function
-	# PopParams 4
-	  add $sp, $sp, 4	# pop params off stack
-	# _tmp4 = "\n"
-	  .data			# create string constant marked with label
-	  _string2: .asciiz "\n"
-	  .text
-	  la $t2, _string2	# load label
-	  sw $t2, -32($fp)	# spill _tmp4 from $t2 to $fp-32
-	# PushParam _tmp4
-	  subu $sp, $sp, 4	# decrement sp to make space for param
-	  lw $t0, -32($fp)	# fill _tmp4 to $t0 from $fp-32
-	  sw $t0, 4($sp)	# copy param value to stack
-	# LCall _PrintString
-	  jal _PrintString   	# jump to function
 	# PopParams 4
 	  add $sp, $sp, 4	# pop params off stack
 	# PushParam s
@@ -77,20 +63,20 @@
 	  lw $ra, -4($fp)	# restore saved ra
 	  lw $fp, 0($fp)	# restore saved fp
 	  jr $ra		# return from function
-  test:
+  _test:
 	# BeginFunc 4
 	  subu $sp, $sp, 8	# decrement sp to make space to save ra, fp
 	  sw $fp, 8($sp)	# save fp
 	  sw $ra, 4($sp)	# save ra
 	  addiu $fp, $sp, 8	# set up new fp
 	  subu $sp, $sp, 4	# decrement sp to make space for locals/temps
-	# _tmp5 = a + b
+	# _tmp4 = a + b
 	  lw $t0, 4($fp)	# fill a to $t0 from $fp+4
 	  lw $t1, 8($fp)	# fill b to $t1 from $fp+8
 	  add $t2, $t0, $t1	
-	  sw $t2, -8($fp)	# spill _tmp5 from $t2 to $fp-8
-	# Return _tmp5
-	  lw $t2, -8($fp)	# fill _tmp5 to $t2 from $fp-8
+	  sw $t2, -8($fp)	# spill _tmp4 from $t2 to $fp-8
+	# Return _tmp4
+	  lw $t2, -8($fp)	# fill _tmp4 to $t2 from $fp-8
 	  move $v0, $t2		# assign return value into $v0
 	  move $sp, $fp		# pop callee frame off stack
 	  lw $ra, -4($fp)	# restore saved ra
