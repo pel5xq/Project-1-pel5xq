@@ -934,6 +934,9 @@ void CompoundExpr::Emit(CodeGenerator *codegen) {
 
 void ArithmeticExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
+   Assert(left->codeLoc != NULL);
+   Assert(right->codeLoc != NULL);
+   codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
 }
 
 void RelationalExpr::Emit(CodeGenerator *codegen) {
@@ -980,6 +983,17 @@ void FieldAccess::Emit(CodeGenerator *codegen) {
 
 void Call::Emit(CodeGenerator *codegen) { //make sure to handle array.length()
    Expr::Emit(codegen);
+   if (base) {
+      
+   }
+   else {
+      for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
+      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->codeLoc);
+      
+      codeLoc = codegen->GenLCall(field->GetName(), 
+         (strcmp((dynamic_cast<FnDecl *>(symboltable->Find(field->GetName())))->GetType()->GetFullName(), "void") != 0));
+      codegen->GenPopParams(actuals->NumElements() * codegen->VarSize);
+   }
 }
 
 void NewExpr::Emit(CodeGenerator *codegen) {

@@ -56,6 +56,7 @@ class VarDecl : public Decl
     void Check(SymbolTable *rootscope);
     int isSubclassOf(const char *parentName) { return 0;}
     void Emit(CodeGenerator *codegen);
+    void EmitFormal(CodeGenerator *codegen, int paramNumber);
 };
 
 class ClassDecl : public Decl 

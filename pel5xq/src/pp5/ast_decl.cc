@@ -397,6 +397,11 @@ void VarDecl::Emit(CodeGenerator *codegen) {
 
 }
 
+void VarDecl::EmitFormal(CodeGenerator *codegen, int paramNumber) {
+  Decl::Emit(codegen);
+  codeLoc = new Location(fpRelative, codegen->OffsetToFirstParam + codegen->VarSize*paramNumber, id->GetName());
+}
+
 void ClassDecl::Emit(CodeGenerator *codegen) {
   Decl::Emit(codegen);
 }
@@ -406,12 +411,14 @@ void InterfaceDecl::Emit(CodeGenerator *codegen) {
   //Not implemented for pp5
 }
 
-void FnDecl::Emit(CodeGenerator *codegen) {
+void FnDecl::Emit(CodeGenerator *codegen) { //add _ before non main labels?
   Decl::Emit(codegen);
+  int tempoffset = codegen->currentOffset;
+  codegen->currentOffset = 0;
   int tmpbefore = codegen->nextTempNum;
   codegen->GenLabel(GetName());
   BeginFunc *bfunc = codegen->GenBeginFunc();
-  if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->Emit(codegen);
+  if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i);
   if (body) body->Emit(codegen);
   int tmpafter = codegen->nextTempNum;
   int bodycount = 0;
@@ -419,4 +426,5 @@ void FnDecl::Emit(CodeGenerator *codegen) {
   if (bodyblock) bodycount = bodyblock->GetNumVarDecls();
   bfunc->SetFrameSize(codegen->VarSize * (tmpafter - tmpbefore + bodycount));
   codegen->GenEndFunc();
+  codegen->currentOffset = tempoffset;
 }

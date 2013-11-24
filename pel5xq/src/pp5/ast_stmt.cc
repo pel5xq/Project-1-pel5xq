@@ -483,6 +483,8 @@ void BreakStmt::Emit(CodeGenerator *codegen) {
 
 void ReturnStmt::Emit(CodeGenerator *codegen) {
    Stmt::Emit(codegen); 
+   expr->Emit(codegen);
+   codegen->GenReturn(expr->codeLoc);
 }
 
 void PrintStmt::Emit(CodeGenerator *codegen) {

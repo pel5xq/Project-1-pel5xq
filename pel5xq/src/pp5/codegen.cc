@@ -38,6 +38,8 @@ Location *CodeGenerator::GenTempVar()
 
   result = new Location(fpRelative, OffsetToFirstLocal - VarSize*currentOffset, temp);
 
+  currentOffset++;
+
   Assert(result != NULL);
   return result;
 }
