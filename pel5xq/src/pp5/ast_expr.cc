@@ -934,21 +934,64 @@ void CompoundExpr::Emit(CodeGenerator *codegen) {
 
 void ArithmeticExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   Assert(left->codeLoc != NULL);
-   Assert(right->codeLoc != NULL);
-   codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+   if (left) {
+      Assert(left->codeLoc != NULL);
+      Assert(right->codeLoc != NULL);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+   }
+   else { //unary minus, implemented as 0-x for -x
+      Assert(right->codeLoc != NULL);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), codegen->GenLoadConstant(0), right->codeLoc);
+   }
 }
 
 void RelationalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
+   Assert(left->codeLoc != NULL);
+   Assert(right->codeLoc != NULL);
+   if (0 == strcmp(op->GetTokenString(), "<")) { //Supported directly
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+   }
+   else if (0 == strcmp(op->GetTokenString(), ">")) { //Implement x>y as y<x
+      codeLoc = codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc);
+   }
+   else if (0 == strcmp(op->GetTokenString(), ">=")) { //Implement x>=y as y<x || y==x
+      codeLoc = codegen->GenBinaryOp("||", 
+         codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc), 
+         codegen->GenBinaryOp("==", right->codeLoc, left->codeLoc));
+   }
+   else if (0 == strcmp(op->GetTokenString(), "<=")) { //Implement x<=y as x<y || x==y
+      codeLoc = codegen->GenBinaryOp("||", 
+         codegen->GenBinaryOp("<", left->codeLoc, right->codeLoc), 
+         codegen->GenBinaryOp("==", left->codeLoc, right->codeLoc));
+   }
 }
 
-void EqualityExpr::Emit(CodeGenerator *codegen) {
+void EqualityExpr::Emit(CodeGenerator *codegen) {//ignoring string equality case
    CompoundExpr::Emit(codegen);
+   Assert(left->codeLoc != NULL);
+   Assert(right->codeLoc != NULL);
+   if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+   }
+   else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as x<y || y<x
+      codeLoc = codegen->GenBinaryOp("||", 
+         codegen->GenBinaryOp("<", left->codeLoc, right->codeLoc), 
+         codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc));
+   }
 }
 
 void LogicalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
+   if (left) {//|| or && supported directly
+      Assert(left->codeLoc != NULL);
+      Assert(right->codeLoc != NULL);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+   }
+   else { //unary !, implemented as x==False for !x
+      Assert(right->codeLoc != NULL);
+      codeLoc = codegen->GenBinaryOp("==", codegen->GenLoadConstant(0), right->codeLoc);
+   }
 }
 
 void AssignExpr::Emit(CodeGenerator *codegen) {
@@ -1014,4 +1057,12 @@ void ReadLineExpr::Emit(CodeGenerator *codegen) {
 
 void PostfixExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   if (lvalue) {
+      lvalue->Emit(codegen);
+      if (0 == strcmp("++", op->GetTokenString())) 
+         codeLoc = codegen->GenBinaryOp("+", lvalue->codeLoc, codegen->GenLoadConstant(1));
+      else if (0 == strcmp("--", op->GetTokenString())) 
+         codeLoc = codegen->GenBinaryOp("-", lvalue->codeLoc, codegen->GenLoadConstant(1));
+
+   }
 }
