@@ -3,32 +3,52 @@
 	  .align 2
 	  .globl main
   main:
-	# BeginFunc 16
+	# BeginFunc 20
 	  subu $sp, $sp, 8	# decrement sp to make space to save ra, fp
 	  sw $fp, 8($sp)	# save fp
 	  sw $ra, 4($sp)	# save ra
 	  addiu $fp, $sp, 8	# set up new fp
-	  subu $sp, $sp, 16	# decrement sp to make space for locals/temps
-	# _tmp0 = 3
-	  li $t2, 3		# load constant value 3 into $t2
-	  sw $t2, -12($fp)	# spill _tmp0 from $t2 to $fp-12
-	# x = _tmp0
-	  lw $t2, -12($fp)	# fill _tmp0 to $t2 from $fp-12
-	  sw $t2, -8($fp)	# spill x from $t2 to $fp-8
-	# _tmp1 = 1
-	  li $t2, 1		# load constant value 1 into $t2
-	  sw $t2, -16($fp)	# spill _tmp1 from $t2 to $fp-16
-	# _tmp2 = x - _tmp1
-	  lw $t0, -8($fp)	# fill x to $t0 from $fp-8
-	  lw $t1, -16($fp)	# fill _tmp1 to $t1 from $fp-16
-	  sub $t2, $t0, $t1	
-	  sw $t2, -20($fp)	# spill _tmp2 from $t2 to $fp-20
-	# PushParam _tmp2
+	  subu $sp, $sp, 20	# decrement sp to make space for locals/temps
+	# _tmp0 = "hello"
+	  .data			# create string constant marked with label
+	  _string1: .asciiz "hello"
+	  .text
+	  la $t2, _string1	# load label
+	  sw $t2, -8($fp)	# spill _tmp0 from $t2 to $fp-8
+	# _tmp1 = "hello"
+	  .data			# create string constant marked with label
+	  _string2: .asciiz "hello"
+	  .text
+	  la $t2, _string2	# load label
+	  sw $t2, -12($fp)	# spill _tmp1 from $t2 to $fp-12
+	# _tmp2 = 0
+	  li $t2, 0		# load constant value 0 into $t2
+	  sw $t2, -16($fp)	# spill _tmp2 from $t2 to $fp-16
+	# PushParam _tmp1
 	  subu $sp, $sp, 4	# decrement sp to make space for param
-	  lw $t0, -20($fp)	# fill _tmp2 to $t0 from $fp-20
+	  lw $t0, -12($fp)	# fill _tmp1 to $t0 from $fp-12
 	  sw $t0, 4($sp)	# copy param value to stack
-	# LCall _PrintInt
-	  jal _PrintInt      	# jump to function
+	# PushParam _tmp0
+	  subu $sp, $sp, 4	# decrement sp to make space for param
+	  lw $t0, -8($fp)	# fill _tmp0 to $t0 from $fp-8
+	  sw $t0, 4($sp)	# copy param value to stack
+	# _tmp3 = LCall _StringEqual
+	  jal _StringEqual   	# jump to function
+	  move $t2, $v0		# copy function return value from $v0
+	  sw $t2, -20($fp)	# spill _tmp3 from $t2 to $fp-20
+	# PopParams 8
+	  add $sp, $sp, 8	# pop params off stack
+	# _tmp4 = _tmp3 == _tmp2
+	  lw $t0, -20($fp)	# fill _tmp3 to $t0 from $fp-20
+	  lw $t1, -16($fp)	# fill _tmp2 to $t1 from $fp-16
+	  seq $t2, $t0, $t1	
+	  sw $t2, -24($fp)	# spill _tmp4 from $t2 to $fp-24
+	# PushParam _tmp4
+	  subu $sp, $sp, 4	# decrement sp to make space for param
+	  lw $t0, -24($fp)	# fill _tmp4 to $t0 from $fp-24
+	  sw $t0, 4($sp)	# copy param value to stack
+	# LCall _PrintBool
+	  jal _PrintBool     	# jump to function
 	# PopParams 4
 	  add $sp, $sp, 4	# pop params off stack
 	# EndFunc

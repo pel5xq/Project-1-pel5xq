@@ -967,11 +967,21 @@ void RelationalExpr::Emit(CodeGenerator *codegen) {
    }
 }
 
-void EqualityExpr::Emit(CodeGenerator *codegen) {//ignoring string equality case
+void EqualityExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    Assert(left->codeLoc != NULL);
    Assert(right->codeLoc != NULL);
-   if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
+   if (0 == strcmp(left->getTypeName(), "string")) {//call string equality
+      if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
+         codeLoc = codegen->GenBuiltInCall(StringEqual,left->codeLoc, right->codeLoc);
+      }
+      else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as (x==y)==false
+         codeLoc = codegen->GenBinaryOp("==", 
+            codeLoc = codegen->GenBuiltInCall(StringEqual,left->codeLoc, right->codeLoc), 
+            codegen->GenLoadConstant(0));
+      }
+   }
+   else if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
    }
    else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as x<y || y<x
