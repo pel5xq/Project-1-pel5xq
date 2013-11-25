@@ -9,6 +9,7 @@
 #include <string.h>
 #include "tac.h"
 #include "mips.h"
+#include "errors.h"
 
 Location* CodeGenerator::ThisPtr= new Location(fpRelative, 4, "this");
   
@@ -197,6 +198,21 @@ Location *CodeGenerator::GenBuiltInCall(BuiltIn bn,Location *arg1, Location *arg
 void CodeGenerator::GenVTable(const char *className, List<const char *> *methodLabels)
 {
   code.push_back(new VTable(className, methodLabels));
+}
+
+Location *CodeGenerator::GenNewArrayCall(Location *arraySize) {
+   char *checklabel = NewLabel();
+   GenIfZ(GenBinaryOp("<", arraySize, GenLoadConstant(0)), checklabel);
+   GenBuiltInCall(PrintString, GenLoadConstant(err_arr_bad_size));
+   GenBuiltInCall(Halt);
+   GenLabel(checklabel);
+   Location *varsizeloc = GenLoadConstant(VarSize);
+   //Allocate array
+   Location *allocatedArray = GenBuiltInCall(Alloc, GenBinaryOp("*", varsizeloc, GenBinaryOp("+", GenLoadConstant(1), arraySize)));
+   //set first member as array length
+   GenStore(allocatedArray, arraySize, 0);
+   //return address of allocation + 4
+   return GenBinaryOp("+", varsizeloc, allocatedArray);
 }
 
 

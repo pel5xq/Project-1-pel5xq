@@ -1020,7 +1020,7 @@ void This::Emit(CodeGenerator *codegen) {
 }
 
 void ArrayAccess::Emit(CodeGenerator *codegen) {
-   LValue::Emit(codegen);
+   LValue::Emit(codegen);//Next up
 }
 
 void FieldAccess::Emit(CodeGenerator *codegen) {
@@ -1055,14 +1055,19 @@ void NewExpr::Emit(CodeGenerator *codegen) {
 
 void NewArrayExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   Assert(size);
+   size->Emit(codegen);
+   codeLoc = codegen->GenNewArrayCall(size->codeLoc);
 }
 
 void ReadIntegerExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   codeLoc = codegen->GenBuiltInCall(ReadInteger);
 }
 
 void ReadLineExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   codeLoc = codegen->GenBuiltInCall(ReadLine);
 }
 
 void PostfixExpr::Emit(CodeGenerator *codegen) {
@@ -1076,3 +1081,4 @@ void PostfixExpr::Emit(CodeGenerator *codegen) {
 
    }
 }
+

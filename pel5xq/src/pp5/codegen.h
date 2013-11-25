@@ -149,6 +149,8 @@ class CodeGenerator {
     void GenReturn(Location *val = NULL);
     void GenLabel(const char *label);
 
+    Location *GenNewArrayCall(Location *arraySize);
+
 
          // These methods generate the Tac instructions that mark the start
          // and end of a function/method definition. 
