@@ -484,7 +484,7 @@ void BreakStmt::Emit(CodeGenerator *codegen) {
 void ReturnStmt::Emit(CodeGenerator *codegen) {
    Stmt::Emit(codegen); 
    expr->Emit(codegen);
-   codegen->GenReturn(expr->codeLoc);
+   codegen->GenReturn(expr->useCodeLoc(codegen));
 }
 
 void PrintStmt::Emit(CodeGenerator *codegen) {
@@ -497,7 +497,7 @@ void PrintStmt::Emit(CodeGenerator *codegen) {
       if (strcmp(arg->getTypeName(), "int") == 0) b = PrintInt;
       else if (strcmp(arg->getTypeName(), "string") == 0) b = PrintString;
       else if (strcmp(arg->getTypeName(), "bool") == 0) b = PrintBool;
-      codegen->GenBuiltInCall(b, arg->codeLoc);
+      codegen->GenBuiltInCall(b, arg->useCodeLoc(codegen));
    }
 }
 

@@ -239,6 +239,7 @@ class ArrayAccess : public LValue
     const char * getTypeName();
     void BuildSymbolTable(SymbolTable *table);
     void Emit(CodeGenerator *codegen);
+    Location *useCodeLoc(CodeGenerator *codegen);
 };
 
 /* Note that field access is used both for qualified names

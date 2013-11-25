@@ -53,8 +53,10 @@ class Node
     void Print(int indentLevel, const char *label = NULL); 
     virtual void PrintChildren(int indentLevel)  {}
     //virtual void BuildSymbolTable(Hashtable<Decl*> *table)  {} //Can't get Decl recognized correctly
-    virtual void Emit(CodeGenerator *codegen) {}
+    virtual void Emit(CodeGenerator *codegen) { isAddress = false; }
     Location *codeLoc;
+    virtual Location *useCodeLoc(CodeGenerator *codegen) { return codeLoc; }
+    bool isAddress;
 };
    
 

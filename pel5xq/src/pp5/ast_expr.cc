@@ -937,11 +937,11 @@ void ArithmeticExpr::Emit(CodeGenerator *codegen) {
    if (left) {
       Assert(left->codeLoc != NULL);
       Assert(right->codeLoc != NULL);
-      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary minus, implemented as 0-x for -x
       Assert(right->codeLoc != NULL);
-      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), codegen->GenLoadConstant(0), right->codeLoc);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
@@ -950,20 +950,20 @@ void RelationalExpr::Emit(CodeGenerator *codegen) {
    Assert(left->codeLoc != NULL);
    Assert(right->codeLoc != NULL);
    if (0 == strcmp(op->GetTokenString(), "<")) { //Supported directly
-      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else if (0 == strcmp(op->GetTokenString(), ">")) { //Implement x>y as y<x
-      codeLoc = codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc);
+      codeLoc = codegen->GenBinaryOp("<", right->useCodeLoc(codegen), left->useCodeLoc(codegen));
    }
    else if (0 == strcmp(op->GetTokenString(), ">=")) { //Implement x>=y as y<x || y==x
       codeLoc = codegen->GenBinaryOp("||", 
-         codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc), 
-         codegen->GenBinaryOp("==", right->codeLoc, left->codeLoc));
+         codegen->GenBinaryOp("<", right->useCodeLoc(codegen), left->useCodeLoc(codegen)), 
+         codegen->GenBinaryOp("==", right->useCodeLoc(codegen), left->useCodeLoc(codegen)));
    }
    else if (0 == strcmp(op->GetTokenString(), "<=")) { //Implement x<=y as x<y || x==y
       codeLoc = codegen->GenBinaryOp("||", 
-         codegen->GenBinaryOp("<", left->codeLoc, right->codeLoc), 
-         codegen->GenBinaryOp("==", left->codeLoc, right->codeLoc));
+         codegen->GenBinaryOp("<", left->useCodeLoc(codegen), right->useCodeLoc(codegen)), 
+         codegen->GenBinaryOp("==", left->useCodeLoc(codegen), right->useCodeLoc(codegen)));
    }
 }
 
@@ -973,21 +973,21 @@ void EqualityExpr::Emit(CodeGenerator *codegen) {
    Assert(right->codeLoc != NULL);
    if (0 == strcmp(left->getTypeName(), "string")) {//call string equality
       if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
-         codeLoc = codegen->GenBuiltInCall(StringEqual,left->codeLoc, right->codeLoc);
+         codeLoc = codegen->GenBuiltInCall(StringEqual,left->useCodeLoc(codegen), right->useCodeLoc(codegen));
       }
       else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as (x==y)==false
          codeLoc = codegen->GenBinaryOp("==", 
-            codeLoc = codegen->GenBuiltInCall(StringEqual,left->codeLoc, right->codeLoc), 
+            codeLoc = codegen->GenBuiltInCall(StringEqual,left->useCodeLoc(codegen), right->useCodeLoc(codegen)), 
             codegen->GenLoadConstant(0));
       }
    }
    else if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
-      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as x<y || y<x
       codeLoc = codegen->GenBinaryOp("||", 
-         codegen->GenBinaryOp("<", left->codeLoc, right->codeLoc), 
-         codegen->GenBinaryOp("<", right->codeLoc, left->codeLoc));
+         codegen->GenBinaryOp("<", left->useCodeLoc(codegen), right->useCodeLoc(codegen)), 
+         codegen->GenBinaryOp("<", right->useCodeLoc(codegen), left->useCodeLoc(codegen)));
    }
 }
 
@@ -996,11 +996,11 @@ void LogicalExpr::Emit(CodeGenerator *codegen) {
    if (left) {//|| or && supported directly
       Assert(left->codeLoc != NULL);
       Assert(right->codeLoc != NULL);
-      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->codeLoc, right->codeLoc);
+      codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary !, implemented as x==False for !x
       Assert(right->codeLoc != NULL);
-      codeLoc = codegen->GenBinaryOp("==", codegen->GenLoadConstant(0), right->codeLoc);
+      codeLoc = codegen->GenBinaryOp("==", codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
@@ -1008,7 +1008,8 @@ void AssignExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    Assert(left->codeLoc != NULL);
    Assert(right->codeLoc != NULL);
-   codegen->GenAssign(left->codeLoc, right->codeLoc);
+   if (left->isAddress) codegen->GenStore(left->codeLoc, right->codeLoc, 0);
+   else codegen->GenAssign(left->codeLoc, right->codeLoc);
 }
 
 void LValue::Emit(CodeGenerator *codegen) {
@@ -1020,8 +1021,15 @@ void This::Emit(CodeGenerator *codegen) {
 }
 
 void ArrayAccess::Emit(CodeGenerator *codegen) {
-   LValue::Emit(codegen);//Next up
+   LValue::Emit(codegen);
+   base->Emit(codegen);
+   subscript->Emit(codegen);
+   isAddress = true;
+   //I think base is always an address, so no need for useCodeLoc
+   codeLoc = codegen->GenArraySubscriptCall(base->codeLoc, subscript->useCodeLoc(codegen));
 }
+
+Location *ArrayAccess::useCodeLoc(CodeGenerator *codegen) { return codegen->GenLoad(codeLoc, 0); }
 
 void FieldAccess::Emit(CodeGenerator *codegen) {
    LValue::Emit(codegen);
@@ -1034,14 +1042,14 @@ void FieldAccess::Emit(CodeGenerator *codegen) {
    }
 }
 
-void Call::Emit(CodeGenerator *codegen) { //make sure to handle array.length()
+void Call::Emit(CodeGenerator *codegen) { //implement array.length() next
    Expr::Emit(codegen);
    if (base) {
       
    }
    else {
       for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
-      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->codeLoc);
+      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
       
       codeLoc = codegen->GenLCall(codegen->LabelForName(field->GetName()), 
          (strcmp((dynamic_cast<FnDecl *>(symboltable->Find(field->GetName())))->GetType()->GetFullName(), "void") != 0));
@@ -1057,7 +1065,7 @@ void NewArrayExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
    Assert(size);
    size->Emit(codegen);
-   codeLoc = codegen->GenNewArrayCall(size->codeLoc);
+   codeLoc = codegen->GenNewArrayCall(size->useCodeLoc(codegen));
 }
 
 void ReadIntegerExpr::Emit(CodeGenerator *codegen) {
@@ -1075,9 +1083,9 @@ void PostfixExpr::Emit(CodeGenerator *codegen) {
    if (lvalue) {
       lvalue->Emit(codegen);
       if (0 == strcmp("++", op->GetTokenString())) 
-         codeLoc = codegen->GenBinaryOp("+", lvalue->codeLoc, codegen->GenLoadConstant(1));
+         codeLoc = codegen->GenBinaryOp("+", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
       else if (0 == strcmp("--", op->GetTokenString())) 
-         codeLoc = codegen->GenBinaryOp("-", lvalue->codeLoc, codegen->GenLoadConstant(1));
+         codeLoc = codegen->GenBinaryOp("-", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
 
    }
 }

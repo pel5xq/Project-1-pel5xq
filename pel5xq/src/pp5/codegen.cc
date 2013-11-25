@@ -202,7 +202,8 @@ void CodeGenerator::GenVTable(const char *className, List<const char *> *methodL
 
 Location *CodeGenerator::GenNewArrayCall(Location *arraySize) {
    char *checklabel = NewLabel();
-   GenIfZ(GenBinaryOp("<", arraySize, GenLoadConstant(0)), checklabel);
+   //if size <= 0 (< 1), runtime error
+   GenIfZ(GenBinaryOp("<", arraySize, GenLoadConstant(1)), checklabel);
    GenBuiltInCall(PrintString, GenLoadConstant(err_arr_bad_size));
    GenBuiltInCall(Halt);
    GenLabel(checklabel);
@@ -213,6 +214,19 @@ Location *CodeGenerator::GenNewArrayCall(Location *arraySize) {
    GenStore(allocatedArray, arraySize, 0);
    //return address of allocation + 4
    return GenBinaryOp("+", varsizeloc, allocatedArray);
+}
+
+Location *CodeGenerator::GenArraySubscriptCall(Location *arrayAddr, Location *arrayIndex) {
+   Location *zeroconst = GenLoadConstant(0);
+   char *checklabel = NewLabel();
+   //if 0 < index || !(index < size), runtime error
+   GenIfZ(GenBinaryOp("||", GenBinaryOp("<", arrayIndex, zeroconst), 
+      GenBinaryOp("==", GenBinaryOp("<", arrayIndex, GenLoad(arrayAddr, -4)), zeroconst)), checklabel);
+   GenBuiltInCall(PrintString, GenLoadConstant(err_arr_out_of_bounds));
+   GenBuiltInCall(Halt);
+   GenLabel(checklabel);
+   //return 4*index + arrayAddr
+   return GenBinaryOp("+", arrayAddr, GenBinaryOp("*", arrayIndex, GenLoadConstant(VarSize)) );
 }
 
 

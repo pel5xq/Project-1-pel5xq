@@ -150,6 +150,7 @@ class CodeGenerator {
     void GenLabel(const char *label);
 
     Location *GenNewArrayCall(Location *arraySize);
+    Location *GenArraySubscriptCall(Location *arrayAddr, Location *arrayIndex);
 
 
          // These methods generate the Tac instructions that mark the start
