@@ -1042,10 +1042,13 @@ void FieldAccess::Emit(CodeGenerator *codegen) {
    }
 }
 
-void Call::Emit(CodeGenerator *codegen) { //implement array.length() next
+void Call::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
    if (base) {
-      
+      base->Emit(codegen);
+      if(NULL != strchr(base->getTypeName(), '[') && 0 == strcmp(field->GetName(), "length")) {
+         codeLoc = codegen->GenLoad(base->codeLoc, -4);//array.length stored in int before array
+      }
    }
    else {
       for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
