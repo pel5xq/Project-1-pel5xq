@@ -984,10 +984,10 @@ void EqualityExpr::Emit(CodeGenerator *codegen) {
    else if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
-   else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as x<y || y<x
-      codeLoc = codegen->GenBinaryOp("||", 
-         codegen->GenBinaryOp("<", left->useCodeLoc(codegen), right->useCodeLoc(codegen)), 
-         codegen->GenBinaryOp("<", right->useCodeLoc(codegen), left->useCodeLoc(codegen)));
+   else if (0 == strcmp(op->GetTokenString(), "!=")) { //Implement x!=y as (x==y)==false
+     codeLoc = codegen->GenBinaryOp("==", 
+         codegen->GenBinaryOp("==", left->useCodeLoc(codegen), right->useCodeLoc(codegen)), 
+         codegen->GenLoadConstant(0));
    }
 }
 
@@ -1008,8 +1008,8 @@ void AssignExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    Assert(left->codeLoc != NULL);
    Assert(right->codeLoc != NULL);
-   if (left->isAddress) codegen->GenStore(left->codeLoc, right->codeLoc, 0);
-   else codegen->GenAssign(left->codeLoc, right->codeLoc);
+   if (left->isAddress) codegen->GenStore(left->codeLoc, right->useCodeLoc(codegen), 0);
+   else codegen->GenAssign(left->useCodeLoc(codegen), right->useCodeLoc(codegen));
 }
 
 void LValue::Emit(CodeGenerator *codegen) {
@@ -1085,11 +1085,16 @@ void PostfixExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
    if (lvalue) {
       lvalue->Emit(codegen);
-      if (0 == strcmp("++", op->GetTokenString())) 
-         codeLoc = codegen->GenBinaryOp("+", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
-      else if (0 == strcmp("--", op->GetTokenString())) 
-         codeLoc = codegen->GenBinaryOp("-", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
-
+      Location *arithloc;
+      if (0 == strcmp("++", op->GetTokenString())) {
+         arithloc = codegen->GenBinaryOp("+", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
+      }
+      else { //if (0 == strcmp("--", op->GetTokenString())) {
+         arithloc = codegen->GenBinaryOp("-", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
+      }
+      if (lvalue->isAddress) codegen->GenStore(lvalue->codeLoc, arithloc, 0);
+      else codegen->GenAssign(lvalue->useCodeLoc(codegen), arithloc);
+      codeLoc = lvalue->useCodeLoc(codegen);
    }
 }
 

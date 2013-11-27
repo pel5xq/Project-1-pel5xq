@@ -459,7 +459,6 @@ void StmtBlock::Emit(CodeGenerator *codegen) {
 
 void ConditionalStmt::Emit(CodeGenerator *codegen) {
    Stmt::Emit(codegen);
-   if (test) test->Emit(codegen); 
 }
 
 void LoopStmt::Emit(CodeGenerator *codegen) {
@@ -472,6 +471,17 @@ void ForStmt::Emit(CodeGenerator *codegen) {
 
 void WhileStmt::Emit(CodeGenerator *codegen) {
    LoopStmt::Emit(codegen); 
+   //if condition not met, go to end
+   //before end label, jump to before test
+   Assert(test);
+   char *beforewhile = codegen->NewLabel();
+   char *afterwhile = codegen->NewLabel();
+   codegen->GenLabel(beforewhile);
+   test->Emit(codegen);
+   codegen->GenIfZ(test->useCodeLoc(codegen), afterwhile);
+   if (body) body->Emit(codegen);
+   codegen->GenGoto(beforewhile);
+   codegen->GenLabel(afterwhile);
 }
 
 void IfStmt::Emit(CodeGenerator *codegen) {
@@ -480,6 +490,7 @@ void IfStmt::Emit(CodeGenerator *codegen) {
    //if there is an else, jump at end of 
    //if body to label for after else
    Assert(test);
+   test->Emit(codegen);
    char *afterif = codegen->NewLabel();
    codegen->GenIfZ(test->useCodeLoc(codegen), afterif);
    if (body) body->Emit(codegen);
