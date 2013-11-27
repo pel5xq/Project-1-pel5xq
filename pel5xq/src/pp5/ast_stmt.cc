@@ -466,7 +466,22 @@ void LoopStmt::Emit(CodeGenerator *codegen) {
 }
 
 void ForStmt::Emit(CodeGenerator *codegen) {
-   LoopStmt::Emit(codegen); 
+   LoopStmt::Emit(codegen);
+   //First, do init
+   //Then do test
+   //If test fails, jump to end
+   //At end, perform step, jump to before test
+   Assert(test);
+   if (init) init->Emit(codegen);
+   char *beforetest = codegen->NewLabel();
+   char *afterloop = codegen->NewLabel();
+   codegen->GenLabel(beforetest);
+   test->Emit(codegen);
+   codegen->GenIfZ(test->useCodeLoc(codegen), afterloop);
+   if (body) body->Emit(codegen);
+   if (step) step->Emit(codegen);
+   codegen->GenGoto(beforetest);
+   codegen->GenLabel(afterloop);
 }
 
 void WhileStmt::Emit(CodeGenerator *codegen) {
