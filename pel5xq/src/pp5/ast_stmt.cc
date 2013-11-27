@@ -564,9 +564,39 @@ void PrintStmt::Emit(CodeGenerator *codegen) {
 
 void Case::Emit(CodeGenerator *codegen) {
    Node::Emit(codegen); 
+   Assert(caseLabel);
+   codegen->GenLabel(caseLabel);
+   if (stmts) for (int i = 0; i < stmts->NumElements(); i++) stmts->Nth(i)->Emit(codegen);
 }
 
 void SwitchStmt::Emit(CodeGenerator *codegen) {
    Stmt::Emit(codegen); 
-   if (cases) for (int i = 0; i < cases->NumElements(); i++) cases->Nth(i)->Emit(codegen);
+   Assert(cases);
+   Assert(expr);
+   //Let each case implementation just be a label with the body code
+   // (break implementation handles ending in a jump to the end of the switch)
+   //At the beginning of the switch, put all the case condition test jumps,
+   // ending in a goto to the default case if it exists
+   // or to the end of the switch (generate this agnostic of default's existence)
+   breakLabel = codegen->NewLabel();
+   expr->Emit(codegen);
+   Location *zeroconst = codegen->GenLoadConstant(0);
+   for (int j = 0; j < cases->NumElements(); j++) {
+      Case *aCase = cases->Nth(j);
+      aCase->caseLabel = codegen->NewLabel();
+      if (aCase->getCaseValue()) {
+         aCase->getCaseValue()->Emit(codegen);
+         codegen->GenIfZ(codegen->GenBinaryOp("==", 
+            codegen->GenBinaryOp("==", aCase->getCaseValue()->useCodeLoc(codegen), expr->useCodeLoc(codegen)), 
+            zeroconst), aCase->caseLabel);
+      }
+      else { //default case
+         codegen->GenGoto(aCase->caseLabel);
+      }
+   }
+   codegen->GenGoto(breakLabel);
+   for (int i = 0; i < cases->NumElements(); i++) {
+      cases->Nth(i)->Emit(codegen);
+   }
+   codegen->GenLabel(breakLabel);
 }

@@ -192,6 +192,8 @@ class Case : public Node
     void ValidateDeclarations();
     void Check(SymbolTable *rootscope);
     void Emit(CodeGenerator *codegen);
+    const char *caseLabel;
+    IntConstant *getCaseValue() { return value; }
 };
 
 class SwitchStmt : public Stmt

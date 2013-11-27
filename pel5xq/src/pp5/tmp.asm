@@ -3,12 +3,12 @@
 	  .align 2
 	  .globl main
   main:
-	# BeginFunc 184
+	# BeginFunc 232
 	  subu $sp, $sp, 8	# decrement sp to make space to save ra, fp
 	  sw $fp, 8($sp)	# save fp
 	  sw $ra, 4($sp)	# save ra
 	  addiu $fp, $sp, 8	# set up new fp
-	  subu $sp, $sp, 184	# decrement sp to make space for locals/temps
+	  subu $sp, $sp, 232	# decrement sp to make space for locals/temps
 	# _tmp0 = 3
 	  li $t2, 3		# load constant value 3 into $t2
 	  sw $t2, -16($fp)	# spill _tmp0 from $t2 to $fp-16
@@ -141,8 +141,8 @@
 	  lw $t1, -92($fp)	# fill _tmp19 to $t1 from $fp-92
 	  add $t2, $t0, $t1	
 	  sw $t2, -96($fp)	# spill _tmp20 from $t2 to $fp-96
-	# _tmp21 = 5
-	  li $t2, 5		# load constant value 5 into $t2
+	# _tmp21 = 1
+	  li $t2, 1		# load constant value 1 into $t2
 	  sw $t2, -100($fp)	# spill _tmp21 from $t2 to $fp-100
 	# *(_tmp20) = _tmp21
 	  lw $t0, -100($fp)	# fill _tmp21 to $t0 from $fp-100
@@ -154,7 +154,6 @@
 	# y = _tmp22
 	  lw $t2, -104($fp)	# fill _tmp22 to $t2 from $fp-104
 	  sw $t2, -12($fp)	# spill y from $t2 to $fp-12
-  _L2:
 	# _tmp23 = 0
 	  li $t2, 0		# load constant value 0 into $t2
 	  sw $t2, -108($fp)	# spill _tmp23 from $t2 to $fp-108
@@ -185,9 +184,9 @@
 	  lw $t1, -124($fp)	# fill _tmp27 to $t1 from $fp-124
 	  or $t2, $t0, $t1	
 	  sw $t2, -132($fp)	# spill _tmp29 from $t2 to $fp-132
-	# IfZ _tmp29 Goto _L4
+	# IfZ _tmp29 Goto _L3
 	  lw $t0, -132($fp)	# fill _tmp29 to $t0 from $fp-132
-	  beqz $t0, _L4	# branch if _tmp29 is zero 
+	  beqz $t0, _L3	# branch if _tmp29 is zero 
 	# _tmp30 = "Decaf runtime error: Array subscript out of bound..."
 	  .data			# create string constant marked with label
 	  _string3: .asciiz "Decaf runtime error: Array subscript out of bounds\n"
@@ -204,7 +203,7 @@
 	  add $sp, $sp, 4	# pop params off stack
 	# LCall _Halt
 	  jal _Halt          	# jump to function
-  _L4:
+  _L3:
 	# _tmp31 = 4
 	  li $t2, 4		# load constant value 4 into $t2
 	  sw $t2, -140($fp)	# spill _tmp31 from $t2 to $fp-140
@@ -218,77 +217,157 @@
 	  lw $t1, -144($fp)	# fill _tmp32 to $t1 from $fp-144
 	  add $t2, $t0, $t1	
 	  sw $t2, -148($fp)	# spill _tmp33 from $t2 to $fp-148
-	# _tmp34 = *(_tmp33)
-	  lw $t0, -148($fp)	# fill _tmp33 to $t0 from $fp-148
-	  lw $t2, 0($t0) 	# load with offset
+	# _tmp34 = 0
+	  li $t2, 0		# load constant value 0 into $t2
 	  sw $t2, -152($fp)	# spill _tmp34 from $t2 to $fp-152
-	# _tmp35 = y == _tmp34
-	  lw $t0, -12($fp)	# fill y to $t0 from $fp-12
-	  lw $t1, -152($fp)	# fill _tmp34 to $t1 from $fp-152
-	  seq $t2, $t0, $t1	
+	# _tmp35 = 1
+	  li $t2, 1		# load constant value 1 into $t2
 	  sw $t2, -156($fp)	# spill _tmp35 from $t2 to $fp-156
 	# _tmp36 = *(_tmp33)
 	  lw $t0, -148($fp)	# fill _tmp33 to $t0 from $fp-148
 	  lw $t2, 0($t0) 	# load with offset
 	  sw $t2, -160($fp)	# spill _tmp36 from $t2 to $fp-160
-	# _tmp37 = y < _tmp36
-	  lw $t0, -12($fp)	# fill y to $t0 from $fp-12
+	# _tmp37 = _tmp35 == _tmp36
+	  lw $t0, -156($fp)	# fill _tmp35 to $t0 from $fp-156
 	  lw $t1, -160($fp)	# fill _tmp36 to $t1 from $fp-160
-	  slt $t2, $t0, $t1	
+	  seq $t2, $t0, $t1	
 	  sw $t2, -164($fp)	# spill _tmp37 from $t2 to $fp-164
-	# _tmp38 = _tmp37 || _tmp35
+	# _tmp38 = _tmp37 == _tmp34
 	  lw $t0, -164($fp)	# fill _tmp37 to $t0 from $fp-164
-	  lw $t1, -156($fp)	# fill _tmp35 to $t1 from $fp-156
-	  or $t2, $t0, $t1	
+	  lw $t1, -152($fp)	# fill _tmp34 to $t1 from $fp-152
+	  seq $t2, $t0, $t1	
 	  sw $t2, -168($fp)	# spill _tmp38 from $t2 to $fp-168
-	# IfZ _tmp38 Goto _L3
+	# IfZ _tmp38 Goto _L4
 	  lw $t0, -168($fp)	# fill _tmp38 to $t0 from $fp-168
-	  beqz $t0, _L3	# branch if _tmp38 is zero 
-	# PushParam y
+	  beqz $t0, _L4	# branch if _tmp38 is zero 
+	# _tmp39 = 2
+	  li $t2, 2		# load constant value 2 into $t2
+	  sw $t2, -172($fp)	# spill _tmp39 from $t2 to $fp-172
+	# _tmp40 = *(_tmp33)
+	  lw $t0, -148($fp)	# fill _tmp33 to $t0 from $fp-148
+	  lw $t2, 0($t0) 	# load with offset
+	  sw $t2, -176($fp)	# spill _tmp40 from $t2 to $fp-176
+	# _tmp41 = _tmp39 == _tmp40
+	  lw $t0, -172($fp)	# fill _tmp39 to $t0 from $fp-172
+	  lw $t1, -176($fp)	# fill _tmp40 to $t1 from $fp-176
+	  seq $t2, $t0, $t1	
+	  sw $t2, -180($fp)	# spill _tmp41 from $t2 to $fp-180
+	# _tmp42 = _tmp41 == _tmp34
+	  lw $t0, -180($fp)	# fill _tmp41 to $t0 from $fp-180
+	  lw $t1, -152($fp)	# fill _tmp34 to $t1 from $fp-152
+	  seq $t2, $t0, $t1	
+	  sw $t2, -184($fp)	# spill _tmp42 from $t2 to $fp-184
+	# IfZ _tmp42 Goto _L5
+	  lw $t0, -184($fp)	# fill _tmp42 to $t0 from $fp-184
+	  beqz $t0, _L5	# branch if _tmp42 is zero 
+	# _tmp43 = 3
+	  li $t2, 3		# load constant value 3 into $t2
+	  sw $t2, -188($fp)	# spill _tmp43 from $t2 to $fp-188
+	# _tmp44 = *(_tmp33)
+	  lw $t0, -148($fp)	# fill _tmp33 to $t0 from $fp-148
+	  lw $t2, 0($t0) 	# load with offset
+	  sw $t2, -192($fp)	# spill _tmp44 from $t2 to $fp-192
+	# _tmp45 = _tmp43 == _tmp44
+	  lw $t0, -188($fp)	# fill _tmp43 to $t0 from $fp-188
+	  lw $t1, -192($fp)	# fill _tmp44 to $t1 from $fp-192
+	  seq $t2, $t0, $t1	
+	  sw $t2, -196($fp)	# spill _tmp45 from $t2 to $fp-196
+	# _tmp46 = _tmp45 == _tmp34
+	  lw $t0, -196($fp)	# fill _tmp45 to $t0 from $fp-196
+	  lw $t1, -152($fp)	# fill _tmp34 to $t1 from $fp-152
+	  seq $t2, $t0, $t1	
+	  sw $t2, -200($fp)	# spill _tmp46 from $t2 to $fp-200
+	# IfZ _tmp46 Goto _L6
+	  lw $t0, -200($fp)	# fill _tmp46 to $t0 from $fp-200
+	  beqz $t0, _L6	# branch if _tmp46 is zero 
+	# _tmp47 = 1
+	  li $t2, 1		# load constant value 1 into $t2
+	  sw $t2, -204($fp)	# spill _tmp47 from $t2 to $fp-204
+	# _tmp48 = *(_tmp33)
+	  lw $t0, -148($fp)	# fill _tmp33 to $t0 from $fp-148
+	  lw $t2, 0($t0) 	# load with offset
+	  sw $t2, -208($fp)	# spill _tmp48 from $t2 to $fp-208
+	# _tmp49 = _tmp47 == _tmp48
+	  lw $t0, -204($fp)	# fill _tmp47 to $t0 from $fp-204
+	  lw $t1, -208($fp)	# fill _tmp48 to $t1 from $fp-208
+	  seq $t2, $t0, $t1	
+	  sw $t2, -212($fp)	# spill _tmp49 from $t2 to $fp-212
+	# _tmp50 = _tmp49 == _tmp34
+	  lw $t0, -212($fp)	# fill _tmp49 to $t0 from $fp-212
+	  lw $t1, -152($fp)	# fill _tmp34 to $t1 from $fp-152
+	  seq $t2, $t0, $t1	
+	  sw $t2, -216($fp)	# spill _tmp50 from $t2 to $fp-216
+	# IfZ _tmp50 Goto _L7
+	  lw $t0, -216($fp)	# fill _tmp50 to $t0 from $fp-216
+	  beqz $t0, _L7	# branch if _tmp50 is zero 
+	# Goto _L8
+	  b _L8		# unconditional branch
+	# Goto _L2
+	  b _L2		# unconditional branch
+  _L4:
+	# _tmp51 = 1
+	  li $t2, 1		# load constant value 1 into $t2
+	  sw $t2, -220($fp)	# spill _tmp51 from $t2 to $fp-220
+	# PushParam _tmp51
 	  subu $sp, $sp, 4	# decrement sp to make space for param
-	  lw $t0, -12($fp)	# fill y to $t0 from $fp-12
+	  lw $t0, -220($fp)	# fill _tmp51 to $t0 from $fp-220
 	  sw $t0, 4($sp)	# copy param value to stack
 	# LCall _PrintInt
 	  jal _PrintInt      	# jump to function
 	# PopParams 4
 	  add $sp, $sp, 4	# pop params off stack
-	# _tmp39 = 3
-	  li $t2, 3		# load constant value 3 into $t2
-	  sw $t2, -172($fp)	# spill _tmp39 from $t2 to $fp-172
-	# _tmp40 = y == _tmp39
-	  lw $t0, -12($fp)	# fill y to $t0 from $fp-12
-	  lw $t1, -172($fp)	# fill _tmp39 to $t1 from $fp-172
-	  seq $t2, $t0, $t1	
-	  sw $t2, -176($fp)	# spill _tmp40 from $t2 to $fp-176
-	# IfZ _tmp40 Goto _L5
-	  lw $t0, -176($fp)	# fill _tmp40 to $t0 from $fp-176
-	  beqz $t0, _L5	# branch if _tmp40 is zero 
-	# Goto _L3
-	  b _L3		# unconditional branch
-  _L5:
-	# _tmp41 = 1
-	  li $t2, 1		# load constant value 1 into $t2
-	  sw $t2, -180($fp)	# spill _tmp41 from $t2 to $fp-180
-	# _tmp42 = y + _tmp41
-	  lw $t0, -12($fp)	# fill y to $t0 from $fp-12
-	  lw $t1, -180($fp)	# fill _tmp41 to $t1 from $fp-180
-	  add $t2, $t0, $t1	
-	  sw $t2, -184($fp)	# spill _tmp42 from $t2 to $fp-184
-	# y = _tmp42
-	  lw $t2, -184($fp)	# fill _tmp42 to $t2 from $fp-184
-	  sw $t2, -12($fp)	# spill y from $t2 to $fp-12
 	# Goto _L2
 	  b _L2		# unconditional branch
-  _L3:
-	# _tmp43 = "Out"
+  _L5:
+  _L6:
+	# _tmp52 = 3
+	  li $t2, 3		# load constant value 3 into $t2
+	  sw $t2, -224($fp)	# spill _tmp52 from $t2 to $fp-224
+	# PushParam _tmp52
+	  subu $sp, $sp, 4	# decrement sp to make space for param
+	  lw $t0, -224($fp)	# fill _tmp52 to $t0 from $fp-224
+	  sw $t0, 4($sp)	# copy param value to stack
+	# LCall _PrintInt
+	  jal _PrintInt      	# jump to function
+	# PopParams 4
+	  add $sp, $sp, 4	# pop params off stack
+  _L7:
+	# _tmp53 = 4
+	  li $t2, 4		# load constant value 4 into $t2
+	  sw $t2, -228($fp)	# spill _tmp53 from $t2 to $fp-228
+	# PushParam _tmp53
+	  subu $sp, $sp, 4	# decrement sp to make space for param
+	  lw $t0, -228($fp)	# fill _tmp53 to $t0 from $fp-228
+	  sw $t0, 4($sp)	# copy param value to stack
+	# LCall _PrintInt
+	  jal _PrintInt      	# jump to function
+	# PopParams 4
+	  add $sp, $sp, 4	# pop params off stack
+  _L8:
+	# _tmp54 = "default"
 	  .data			# create string constant marked with label
-	  _string4: .asciiz "Out"
+	  _string4: .asciiz "default"
 	  .text
 	  la $t2, _string4	# load label
-	  sw $t2, -188($fp)	# spill _tmp43 from $t2 to $fp-188
-	# PushParam _tmp43
+	  sw $t2, -232($fp)	# spill _tmp54 from $t2 to $fp-232
+	# PushParam _tmp54
 	  subu $sp, $sp, 4	# decrement sp to make space for param
-	  lw $t0, -188($fp)	# fill _tmp43 to $t0 from $fp-188
+	  lw $t0, -232($fp)	# fill _tmp54 to $t0 from $fp-232
+	  sw $t0, 4($sp)	# copy param value to stack
+	# LCall _PrintString
+	  jal _PrintString   	# jump to function
+	# PopParams 4
+	  add $sp, $sp, 4	# pop params off stack
+  _L2:
+	# _tmp55 = "\nAfter"
+	  .data			# create string constant marked with label
+	  _string5: .asciiz "\nAfter"
+	  .text
+	  la $t2, _string5	# load label
+	  sw $t2, -236($fp)	# spill _tmp55 from $t2 to $fp-236
+	# PushParam _tmp55
+	  subu $sp, $sp, 4	# decrement sp to make space for param
+	  lw $t0, -236($fp)	# fill _tmp55 to $t0 from $fp-236
 	  sw $t0, 4($sp)	# copy param value to stack
 	# LCall _PrintString
 	  jal _PrintString   	# jump to function
