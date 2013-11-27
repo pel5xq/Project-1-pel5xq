@@ -88,6 +88,7 @@ class LoopStmt : public ConditionalStmt
     LoopStmt(Expr *testExpr, Stmt *body)
             : ConditionalStmt(testExpr, body) {}
     virtual void Emit(CodeGenerator *codegen);
+    const char *breakLabel;
 };
 
 class ForStmt : public LoopStmt 
@@ -207,6 +208,7 @@ class SwitchStmt : public Stmt
     void ValidateDeclarations();
     void Check(SymbolTable *rootscope);
     void Emit(CodeGenerator *codegen);
+    const char *breakLabel;
 };
 
 #endif

@@ -475,6 +475,7 @@ void ForStmt::Emit(CodeGenerator *codegen) {
    if (init) init->Emit(codegen);
    char *beforetest = codegen->NewLabel();
    char *afterloop = codegen->NewLabel();
+   breakLabel = afterloop;
    codegen->GenLabel(beforetest);
    test->Emit(codegen);
    codegen->GenIfZ(test->useCodeLoc(codegen), afterloop);
@@ -491,6 +492,7 @@ void WhileStmt::Emit(CodeGenerator *codegen) {
    Assert(test);
    char *beforewhile = codegen->NewLabel();
    char *afterwhile = codegen->NewLabel();
+   breakLabel = afterwhile;
    codegen->GenLabel(beforewhile);
    test->Emit(codegen);
    codegen->GenIfZ(test->useCodeLoc(codegen), afterwhile);
@@ -523,6 +525,21 @@ void IfStmt::Emit(CodeGenerator *codegen) {
 
 void BreakStmt::Emit(CodeGenerator *codegen) {
    Stmt::Emit(codegen); 
+   Node *parentNode = this;
+   while (NULL != (parentNode = parentNode->GetParent())) {
+       LoopStmt *parentLStmt = dynamic_cast<LoopStmt *>(parentNode);
+       SwitchStmt *parentSStmt = dynamic_cast<SwitchStmt *>(parentNode);
+       if (NULL != parentLStmt) {
+          codegen->GenGoto(parentLStmt->breakLabel);
+          break;
+       }
+       else if (NULL != parentSStmt) {
+          codegen->GenGoto(parentSStmt->breakLabel);
+          break;
+       }
+   }
+   //Shouldn't be reached
+   Assert(parentNode->GetParent());
 }
 
 void ReturnStmt::Emit(CodeGenerator *codegen) {
