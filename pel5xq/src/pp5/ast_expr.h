@@ -240,6 +240,7 @@ class ArrayAccess : public LValue
     void BuildSymbolTable(SymbolTable *table);
     void Emit(CodeGenerator *codegen);
     Location *useCodeLoc(CodeGenerator *codegen);
+    void storeCodeLoc(CodeGenerator *codegen, Node *storeLoc);
 };
 
 /* Note that field access is used both for qualified names
@@ -263,6 +264,10 @@ class FieldAccess : public LValue
     const char * getTypeName();
     void BuildSymbolTable(SymbolTable *table);
     void Emit(CodeGenerator *codegen);
+    Location *classBase;
+    void storeCodeLoc(CodeGenerator *codegen, Node *storeLoc);
+    Location *useCodeLoc(CodeGenerator *codegen);
+    int classPlacement;
 };
 
 /* Like field access, call is used both for qualified base.field()

@@ -56,6 +56,8 @@ class Node
     virtual void Emit(CodeGenerator *codegen) { isAddress = false; }
     Location *codeLoc;
     virtual Location *useCodeLoc(CodeGenerator *codegen) { return codeLoc; }
+    virtual void storeCodeLoc(CodeGenerator *codegen, Node *storeLoc) 
+        { codegen->GenAssign(useCodeLoc(codegen), storeLoc->useCodeLoc(codegen)); }
     bool isAddress;
 };
    

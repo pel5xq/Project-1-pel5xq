@@ -54,7 +54,7 @@ class CodeGenerator {
     char *NewLabel();
 
     const char *LabelForName(const char* name);
-
+    const char *LabelForNameWithPrefix(const char* prefix, const char* name);
     
          // Creates and returns a Location for a new uniquely named
          // temp variable. Does not generate any Tac instructions

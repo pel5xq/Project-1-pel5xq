@@ -935,20 +935,20 @@ void CompoundExpr::Emit(CodeGenerator *codegen) {
 void ArithmeticExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    if (left) {
-      Assert(left->codeLoc != NULL);
-      Assert(right->codeLoc != NULL);
+      //Assert(left->codeLoc != NULL);
+      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary minus, implemented as 0-x for -x
-      Assert(right->codeLoc != NULL);
+      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
 void RelationalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   Assert(left->codeLoc != NULL);
-   Assert(right->codeLoc != NULL);
+   //Assert(left->codeLoc != NULL);
+   //Assert(right->codeLoc != NULL);
    if (0 == strcmp(op->GetTokenString(), "<")) { //Supported directly
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
@@ -969,8 +969,8 @@ void RelationalExpr::Emit(CodeGenerator *codegen) {
 
 void EqualityExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   Assert(left->codeLoc != NULL);
-   Assert(right->codeLoc != NULL);
+   //Assert(left->codeLoc != NULL);
+   //Assert(right->codeLoc != NULL);
    if (0 == strcmp(left->getTypeName(), "string")) {//call string equality
       if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
          codeLoc = codegen->GenBuiltInCall(StringEqual,left->useCodeLoc(codegen), right->useCodeLoc(codegen));
@@ -994,22 +994,23 @@ void EqualityExpr::Emit(CodeGenerator *codegen) {
 void LogicalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    if (left) {//|| or && supported directly
-      Assert(left->codeLoc != NULL);
-      Assert(right->codeLoc != NULL);
+      //Assert(left->codeLoc != NULL);
+      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary !, implemented as x==False for !x
-      Assert(right->codeLoc != NULL);
+      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp("==", codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
 void AssignExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   Assert(left->codeLoc != NULL);
-   Assert(right->codeLoc != NULL);
-   if (left->isAddress) codegen->GenStore(left->codeLoc, right->useCodeLoc(codegen), 0);
-   else codegen->GenAssign(left->useCodeLoc(codegen), right->useCodeLoc(codegen));
+   //Assert(left->codeLoc != NULL);
+   //Assert(right->codeLoc != NULL);
+   left->storeCodeLoc(codegen, right);
+   //if (left->isAddress) codegen->GenStore(left->codeLoc, right->useCodeLoc(codegen), 0);
+   //else codegen->GenAssign(left->useCodeLoc(codegen), right->useCodeLoc(codegen));
 }
 
 void LValue::Emit(CodeGenerator *codegen) {
@@ -1018,6 +1019,7 @@ void LValue::Emit(CodeGenerator *codegen) {
 
 void This::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   codeLoc = codegen->ThisPtr;
 }
 
 void ArrayAccess::Emit(CodeGenerator *codegen) {
@@ -1029,17 +1031,47 @@ void ArrayAccess::Emit(CodeGenerator *codegen) {
    codeLoc = codegen->GenArraySubscriptCall(base->codeLoc, subscript->useCodeLoc(codegen));
 }
 
-Location *ArrayAccess::useCodeLoc(CodeGenerator *codegen) { return codegen->GenLoad(codeLoc, 0); }
+Location *ArrayAccess::useCodeLoc(CodeGenerator *codegen) { 
+  return codegen->GenLoad(codeLoc, 0); 
+}
+
+void ArrayAccess::storeCodeLoc(CodeGenerator *codegen, Node *storeLoc) { 
+  codegen->GenStore(codeLoc, storeLoc->useCodeLoc(codegen), 0); 
+}
 
 void FieldAccess::Emit(CodeGenerator *codegen) {
    LValue::Emit(codegen);
    if (base) {
-      
+      base->Emit(codegen);
+      isAddress = true;
+      //Will base always be addressable?
+      classBase = base->useCodeLoc(codegen);
+      //lookup var in class's context
+      VarDecl *var = dynamic_cast<VarDecl *>(base->symboltable->Find(field->GetName()));
+      Assert(var);
+      classPlacement = var->classPlacement;
    }
    else {
-      //Lookup what has already been declared in scope
-      codeLoc = symboltable->Find(field->GetName())->codeLoc;
+      VarDecl *var = dynamic_cast<VarDecl *>(symboltable->Find(field->GetName()));
+      Assert(var);
+      if (var->isAddress) { //Detect if from class with implied this
+        isAddress = true;
+        classBase = codegen->ThisPtr;
+        classPlacement = var->classPlacement;
+      }
+      //Should this be useCodeLoc?
+      else codeLoc = symboltable->Find(field->GetName())->useCodeLoc(codegen);
    }
+}
+
+Location *FieldAccess::useCodeLoc(CodeGenerator *codegen) { 
+  if (isAddress) return codegen->GenLoad(classBase, classPlacement);
+  else return codeLoc;
+}
+
+void FieldAccess::storeCodeLoc(CodeGenerator *codegen, Node *storeLoc) { 
+  if (isAddress) codegen->GenStore(classBase, storeLoc->useCodeLoc(codegen), classPlacement); 
+  else codegen->GenAssign(useCodeLoc(codegen), storeLoc->useCodeLoc(codegen));
 }
 
 void Call::Emit(CodeGenerator *codegen) {
@@ -1092,6 +1124,7 @@ void PostfixExpr::Emit(CodeGenerator *codegen) {
       else { //if (0 == strcmp("--", op->GetTokenString())) {
          arithloc = codegen->GenBinaryOp("-", lvalue->useCodeLoc(codegen), codegen->GenLoadConstant(1));
       }
+      //Use storeCodeLoc here?
       if (lvalue->isAddress) codegen->GenStore(lvalue->codeLoc, arithloc, 0);
       else codegen->GenAssign(lvalue->useCodeLoc(codegen), arithloc);
       codeLoc = lvalue->useCodeLoc(codegen);

@@ -402,8 +402,58 @@ void VarDecl::EmitFormal(CodeGenerator *codegen, int paramNumber) {
   codeLoc = new Location(fpRelative, codegen->OffsetToFirstParam + codegen->VarSize*paramNumber, id->GetName());
 }
 
+void VarDecl::EmitClass(CodeGenerator *codegen, int classOffset) {//, Location *base) {
+  Decl::Emit(codegen);
+  isAddress = true;
+  classPlacement = classOffset*codegen->VarSize;
+  //classBase = codegen->ThisPtr; //Assume this when none specified
+  //FieldAccess should update classBase when one is used
+}
+
 void ClassDecl::Emit(CodeGenerator *codegen) {
   Decl::Emit(codegen);
+  //Reference to class object is a pointer to
+  // the address containting the address of the vtable, then each of the vardecls
+  // the vtable contains a list of all labels of class methods, first inherited then declared 
+  // Class function declarations have the name of the class appended to the label (_class.function)
+  // and have an implied "this" as a first parameter
+
+  int varoffsetCounter;
+  if (!extends) varoffsetCounter = 1;
+  else {
+    //implement adding parent offset to current offset for vars
+    // and keeping track of function offsets for call next
+  }
+  for (int i = 0; i < members->NumElements(); i++) {
+    Decl *member = members->Nth(i);
+    FnDecl *fnmember = dynamic_cast<FnDecl *>(member);
+    VarDecl *varmember = dynamic_cast<VarDecl *>(member);
+    Assert(fnmember || varmember);
+    if (varmember) {
+      varmember->EmitClass(codegen, varoffsetCounter);
+      varoffsetCounter++;
+    }
+    else {
+      fnmember->EmitClass(codegen, GetName());
+    }
+  }
+  codegen->GenVTable(GetName(), getMethodLabels(codegen));
+}
+
+List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
+  List<const char*> *list = new List<const char*>;
+  //Add parent's labels first, always maintain same order
+  if (extends) { //Ignoring interfaces for pp5
+    ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(extends->GetName()));
+    Assert(parentclass);
+    List<const char*> *parentList = parentclass->getMethodLabels(codegen);
+    for (int j = 0; j < parentList->NumElements(); j++) list->Append(parentList->Nth(j));
+  }
+  for (int i = 0; i < members->NumElements(); i++) {
+    FnDecl *fndecl = dynamic_cast<FnDecl *>(members->Nth(i));
+    if (fndecl) list->Append(codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName()));
+  }
+  return list;
 }
 
 void InterfaceDecl::Emit(CodeGenerator *codegen) {
@@ -411,13 +461,33 @@ void InterfaceDecl::Emit(CodeGenerator *codegen) {
   //Not implemented for pp5
 }
 
-void FnDecl::Emit(CodeGenerator *codegen) { //check if is in class
+void FnDecl::Emit(CodeGenerator *codegen) {
   Decl::Emit(codegen);
   int tempoffset = codegen->currentOffset;
   codegen->currentOffset = 0;
   int tmpbefore = codegen->nextTempNum;
   
   codegen->GenLabel(codegen->LabelForName(GetName()));
+
+  BeginFunc *bfunc = codegen->GenBeginFunc();
+  if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i);
+  if (body) body->Emit(codegen);
+  int tmpafter = codegen->nextTempNum;
+  int bodycount = 0;
+  StmtBlock *bodyblock = dynamic_cast<StmtBlock *>(body);
+  if (bodyblock) bodycount = bodyblock->GetNumVarDecls();
+  bfunc->SetFrameSize(codegen->VarSize * (tmpafter - tmpbefore + bodycount));
+  codegen->GenEndFunc();
+  codegen->currentOffset = tempoffset;
+}
+
+void FnDecl::EmitClass(CodeGenerator *codegen, const char *classname) {
+  Decl::Emit(codegen);
+  int tempoffset = codegen->currentOffset;
+  codegen->currentOffset = 0;
+  int tmpbefore = codegen->nextTempNum;
+  
+  codegen->GenLabel(codegen->LabelForNameWithPrefix(classname, GetName()));
 
   BeginFunc *bfunc = codegen->GenBeginFunc();
   if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i);

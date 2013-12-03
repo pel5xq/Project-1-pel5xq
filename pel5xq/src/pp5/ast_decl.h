@@ -42,8 +42,8 @@ class Decl : public Node
 class VarDecl : public Decl 
 {
   protected:
-    Type *type;
-    
+    Type *type;    
+
   public:
     VarDecl(Identifier *name, Type *type);
     const char *GetPrintNameForNode() { return "VarDecl"; }
@@ -57,6 +57,8 @@ class VarDecl : public Decl
     int isSubclassOf(const char *parentName) { return 0;}
     void Emit(CodeGenerator *codegen);
     void EmitFormal(CodeGenerator *codegen, int paramNumber);
+    void EmitClass(CodeGenerator *codegen, int classOffset);
+    int classPlacement;
 };
 
 class ClassDecl : public Decl 
@@ -79,6 +81,7 @@ class ClassDecl : public Decl
     void Check(SymbolTable *rootscope);
     int isSubclassOf(const char *parentName);
     void Emit(CodeGenerator *codegen);
+    List<const char *> *getMethodLabels(CodeGenerator *codegen);
 };
 
 class InterfaceDecl : public Decl 
@@ -122,6 +125,7 @@ class FnDecl : public Decl
     void Check(SymbolTable *rootscope);
     int isSubclassOf(const char *parentName) {return 0;}
     void Emit(CodeGenerator *codegen);
+    void EmitClass(CodeGenerator *codegen, const char* classname);
 };
 
 #endif

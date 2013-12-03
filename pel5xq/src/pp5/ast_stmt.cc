@@ -553,7 +553,7 @@ void PrintStmt::Emit(CodeGenerator *codegen) {
    for (int i = 0; i < args->NumElements(); i++) {
       Expr *arg = args->Nth(i);
       arg->Emit(codegen);
-      Assert(arg->codeLoc);
+      //Assert(arg->codeLoc);
       BuiltIn b;
       if (strcmp(arg->getTypeName(), "int") == 0) b = PrintInt;
       else if (strcmp(arg->getTypeName(), "string") == 0) b = PrintString;

@@ -32,6 +32,12 @@ const char *CodeGenerator::LabelForName(const char* name) {
   return temp;
 }
 
+const char *CodeGenerator::LabelForNameWithPrefix(const char* prefix, const char* name) {
+  if (0 == strcmp(name, "main")) return name;
+  char *temp = new char[strlen(name)+strlen(prefix)+3];//Is +2 unsafe or is +3 one char too many?
+  sprintf(temp, "_%s.%s", prefix, name);
+  return temp;
+}
 
 Location *CodeGenerator::GenTempVar()
 {
