@@ -72,6 +72,7 @@ class CodeGenerator {
     Location *GenLoadConstant(int value);
     Location *GenLoadConstant(const char *str);
     Location *GenLoadLabel(const char *label);
+    Location *GenNewExpr(int byteSize, const char *className);
 
 
          // Generates Tac instructions to copy value from one location to another

@@ -402,12 +402,10 @@ void VarDecl::EmitFormal(CodeGenerator *codegen, int paramNumber) {
   codeLoc = new Location(fpRelative, codegen->OffsetToFirstParam + codegen->VarSize*paramNumber, id->GetName());
 }
 
-void VarDecl::EmitClass(CodeGenerator *codegen, int classOffset) {//, Location *base) {
+void VarDecl::EmitClass(CodeGenerator *codegen, int classOffset) {
   Decl::Emit(codegen);
   isAddress = true;
   classPlacement = classOffset*codegen->VarSize;
-  //classBase = codegen->ThisPtr; //Assume this when none specified
-  //FieldAccess should update classBase when one is used
 }
 
 void ClassDecl::Emit(CodeGenerator *codegen) {
@@ -445,6 +443,8 @@ void ClassDecl::Emit(CodeGenerator *codegen) {
     }
   }
   codegen->GenVTable(GetName(), getMethodLabels(codegen));
+  newSize = varoffsetCounter * codegen->VarSize;
+  printf("%s: %d %d\n", GetName(), varoffsetCounter, newSize);
 }
 
 List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {

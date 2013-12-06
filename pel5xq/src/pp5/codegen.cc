@@ -39,6 +39,12 @@ const char *CodeGenerator::LabelForNameWithPrefix(const char* prefix, const char
   return temp;
 }
 
+Location *CodeGenerator::GenNewExpr(int byteSize, const char *className) {
+  Location *classptr = GenBuiltInCall(Alloc, GenLoadConstant(byteSize));
+  GenStore(classptr, GenLoadLabel(className), 0);
+  return classptr;
+}
+
 Location *CodeGenerator::GenTempVar()
 {
   //static int nextTempNum;

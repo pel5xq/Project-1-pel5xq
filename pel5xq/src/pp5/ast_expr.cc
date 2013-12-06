@@ -1094,6 +1094,10 @@ void Call::Emit(CodeGenerator *codegen) {
 
 void NewExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
+   ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(cType->GetName()));
+   Assert(parentclass); 
+   printf("%s %d\n", parentclass->GetName(), parentclass->getSize());
+   codeLoc = codegen->GenNewExpr(parentclass->getSize(), cType->GetName());
 }
 
 void NewArrayExpr::Emit(CodeGenerator *codegen) {
