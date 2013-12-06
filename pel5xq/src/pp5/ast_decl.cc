@@ -412,17 +412,24 @@ void VarDecl::EmitClass(CodeGenerator *codegen, int classOffset) {//, Location *
 
 void ClassDecl::Emit(CodeGenerator *codegen) {
   Decl::Emit(codegen);
-  //Reference to class object is a pointer to
+  // Reference to class object is a pointer to
   // the address containting the address of the vtable, then each of the vardecls
   // the vtable contains a list of all labels of class methods, first inherited then declared 
   // Class function declarations have the name of the class appended to the label (_class.function)
   // and have an implied "this" as a first parameter
 
-  int varoffsetCounter;
-  if (!extends) varoffsetCounter = 1;
-  else {
-    //implement adding parent offset to current offset for vars
-    // and keeping track of function offsets for call next
+  int varoffsetCounter = 1;
+  if (extends) {
+    ClassDecl *heirnode = this;
+    while (heirnode->extends != NULL) {
+      ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(heirnode->extends->GetName()));
+      Assert(parentclass);
+      for (int i = 0; i < parentclass->members->NumElements(); i++) {
+        VarDecl *varmember = dynamic_cast<VarDecl *>(parentclass->members->Nth(i));
+        if (varmember) varoffsetCounter++;
+      }
+      heirnode = parentclass;
+    }
   }
   for (int i = 0; i < members->NumElements(); i++) {
     Decl *member = members->Nth(i);
@@ -443,6 +450,7 @@ void ClassDecl::Emit(CodeGenerator *codegen) {
 List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
   List<const char*> *list = new List<const char*>;
   //Add parent's labels first, always maintain same order
+  //If label here overrides previous label, replace in order
   if (extends) { //Ignoring interfaces for pp5
     ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(extends->GetName()));
     Assert(parentclass);
@@ -451,7 +459,25 @@ List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
   }
   for (int i = 0; i < members->NumElements(); i++) {
     FnDecl *fndecl = dynamic_cast<FnDecl *>(members->Nth(i));
-    if (fndecl) list->Append(codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName()));
+    if (fndecl) {
+      bool isOverride = false;
+      const char *newlabel = codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName());
+      for (int k = 0; k < list->NumElements(); k++) {
+         char *buff = new char[strlen(fndecl->GetName())];
+         strncpy(buff, strchr(list->Nth(k), '.')+1, strlen(fndecl->GetName()));
+         if (0 == strcmp(buff, fndecl->GetName())) {
+           list->RemoveAt(k);
+           list->InsertAt(newlabel, k);
+           fndecl->vtableOffset = k;
+           isOverride = true;
+           //break here?
+         }
+      }
+      if (!isOverride) {
+        fndecl->vtableOffset = list->NumElements();
+        list->Append(newlabel);
+      }
+    }
   }
   return list;
 }

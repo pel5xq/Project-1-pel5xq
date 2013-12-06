@@ -126,6 +126,7 @@ class FnDecl : public Decl
     int isSubclassOf(const char *parentName) {return 0;}
     void Emit(CodeGenerator *codegen);
     void EmitClass(CodeGenerator *codegen, const char* classname);
+    int vtableOffset;
 };
 
 #endif
