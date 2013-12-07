@@ -460,6 +460,13 @@ int ClassDecl::getSize() {
   return retSize;
 }
 
+int fnCoreEquals(const char *classFn, const char *thisFn) {
+  int bufflen = strlen(classFn) - ((strchr(classFn, '.')+1) - classFn);
+  char * buff = new char[bufflen];
+  strncpy(buff, strchr(classFn, '.')+1, bufflen);
+  return strcmp(buff, thisFn);
+}
+
 List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
   List<const char*> *list = new List<const char*>;
   //Add parent's labels first, always maintain same order
@@ -478,9 +485,7 @@ List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
       bool isOverride = false;
       const char *newlabel = codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName());
       for (int k = 0; k < list->NumElements(); k++) {
-         char *buff = new char[strlen(fndecl->GetName())];
-         strncpy(buff, strchr(list->Nth(k), '.')+1, strlen(fndecl->GetName()));
-         if (0 == strcmp(buff, fndecl->GetName())) {
+         if (0 == fnCoreEquals(list->Nth(k), fndecl->GetName())) {
            list->RemoveAt(k);
            list->InsertAt(newlabel, k);
            fndecl->vtableOffset = k;
@@ -513,9 +518,7 @@ int ClassDecl::getOffsetForMethod(CodeGenerator *codegen, const char *methodName
       bool isOverride = false;
       const char *newlabel = codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName());
       for (int k = 0; k < list->NumElements(); k++) {
-         char *buff = new char[strlen(fndecl->GetName())];
-         strncpy(buff, strchr(list->Nth(k), '.')+1, strlen(fndecl->GetName()));
-         if (0 == strcmp(buff, fndecl->GetName())) {
+         if (0 == fnCoreEquals(list->Nth(k), fndecl->GetName())) {
            list->RemoveAt(k);
            list->InsertAt(newlabel, k);
            isOverride = true;
@@ -527,9 +530,7 @@ int ClassDecl::getOffsetForMethod(CodeGenerator *codegen, const char *methodName
     }
   }
   for (int c = 0; c < list->NumElements(); c++) {
-    char *buff = new char[strlen(methodName)];
-    strncpy(buff, strchr(list->Nth(c), '.')+1, strlen(methodName));
-    if (0 == strcmp(buff, methodName)) return c;
+    if (0 == fnCoreEquals(list->Nth(c), methodName)) return c;
   }
     return -1;
 }
