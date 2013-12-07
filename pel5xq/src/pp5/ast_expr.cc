@@ -935,20 +935,15 @@ void CompoundExpr::Emit(CodeGenerator *codegen) {
 void ArithmeticExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    if (left) {
-      //Assert(left->codeLoc != NULL);
-      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary minus, implemented as 0-x for -x
-      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
 void RelationalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   //Assert(left->codeLoc != NULL);
-   //Assert(right->codeLoc != NULL);
    if (0 == strcmp(op->GetTokenString(), "<")) { //Supported directly
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
@@ -969,8 +964,6 @@ void RelationalExpr::Emit(CodeGenerator *codegen) {
 
 void EqualityExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   //Assert(left->codeLoc != NULL);
-   //Assert(right->codeLoc != NULL);
    if (0 == strcmp(left->getTypeName(), "string")) {//call string equality
       if (0 == strcmp(op->GetTokenString(), "==")) { //Supported directly
          codeLoc = codegen->GenBuiltInCall(StringEqual,left->useCodeLoc(codegen), right->useCodeLoc(codegen));
@@ -994,23 +987,16 @@ void EqualityExpr::Emit(CodeGenerator *codegen) {
 void LogicalExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
    if (left) {//|| or && supported directly
-      //Assert(left->codeLoc != NULL);
-      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp(op->GetTokenString(), left->useCodeLoc(codegen), right->useCodeLoc(codegen));
    }
    else { //unary !, implemented as x==False for !x
-      //Assert(right->codeLoc != NULL);
       codeLoc = codegen->GenBinaryOp("==", codegen->GenLoadConstant(0), right->useCodeLoc(codegen));
    }
 }
 
 void AssignExpr::Emit(CodeGenerator *codegen) {
    CompoundExpr::Emit(codegen);
-   //Assert(left->codeLoc != NULL);
-   //Assert(right->codeLoc != NULL);
    left->storeCodeLoc(codegen, right);
-   //if (left->isAddress) codegen->GenStore(left->codeLoc, right->useCodeLoc(codegen), 0);
-   //else codegen->GenAssign(left->useCodeLoc(codegen), right->useCodeLoc(codegen));
 }
 
 void LValue::Emit(CodeGenerator *codegen) {
@@ -1081,20 +1067,21 @@ void Call::Emit(CodeGenerator *codegen) {
       if(NULL != strchr(base->getTypeName(), '[') && 0 == strcmp(field->GetName(), "length")) {
          codeLoc = codegen->GenLoad(base->codeLoc, -4);//array.length stored in int before array
       }
-      //handle class method calls
-      ClassDecl *classdecl = dynamic_cast<ClassDecl *>(symboltable->Find(base->getTypeName()));
-      Assert(classdecl);
-      FnDecl *fndecl = dynamic_cast<FnDecl *>(classdecl->bodytable->Find(field->GetName()));
-      Assert(fndecl);
-      int fnoffset = classdecl->getOffsetForMethod(codegen, fndecl->GetName());
-      Assert(-1 != fnoffset);
+      else {
+        ClassDecl *classdecl = dynamic_cast<ClassDecl *>(symboltable->Find(base->getTypeName()));
+        Assert(classdecl);
+        FnDecl *fndecl = dynamic_cast<FnDecl *>(classdecl->bodytable->Find(field->GetName()));
+        Assert(fndecl);
+        int fnoffset = classdecl->getOffsetForMethod(codegen, fndecl->GetName());
+        Assert(-1 != fnoffset);
 
-      for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
-      Location *fnloc = codegen->GenLoad(codegen->GenLoad(base->useCodeLoc(codegen), 0), fnoffset * codegen->VarSize);
-      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
-      codegen->GenPushParam(base->useCodeLoc(codegen));
-      codeLoc = codegen->GenACall(fnloc, (strcmp(fndecl->GetType()->GetFullName(), "void") != 0));
-      codegen->GenPopParams((actuals->NumElements()+1) * codegen->VarSize);
+        for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
+        Location *fnloc = codegen->GenLoad(codegen->GenLoad(base->useCodeLoc(codegen), 0), fnoffset * codegen->VarSize);
+        for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
+        codegen->GenPushParam(base->useCodeLoc(codegen));
+        codeLoc = codegen->GenACall(fnloc, (strcmp(fndecl->GetType()->GetFullName(), "void") != 0));
+        codegen->GenPopParams((actuals->NumElements()+1) * codegen->VarSize);
+      }
    }
    else {
       FnDecl *fndecl = dynamic_cast<FnDecl *>(symboltable->Find(field->GetName()));

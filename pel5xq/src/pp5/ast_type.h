@@ -33,7 +33,6 @@ class Type : public Node
     const char *GetCoreName();
     bool isPrimitiveType();
     Type* GetCoreType();
-    //const char *GetTypeName() { return typeName; }
     virtual int compare(Type *other);
     virtual int comparePolymorph(Type *other, SymbolTable *rootscope);
     virtual int comparePolymorph(const char *other, SymbolTable *rootscope);
