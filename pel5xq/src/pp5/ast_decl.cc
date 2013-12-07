@@ -461,9 +461,10 @@ int ClassDecl::getSize() {
 }
 
 int fnCoreEquals(const char *classFn, const char *thisFn) {
-  int bufflen = strlen(classFn) - ((strchr(classFn, '.')+1) - classFn);
+  int bufflen = strlen(classFn) - ((strchr(classFn, '.')) - classFn);//+1
   char * buff = new char[bufflen];
   strncpy(buff, strchr(classFn, '.')+1, bufflen);
+  //printf("%s (%s) with %s = %d\n", buff, classFn, thisFn, strcmp(buff, thisFn));
   return strcmp(buff, thisFn);
 }
 
