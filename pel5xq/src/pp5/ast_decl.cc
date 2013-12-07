@@ -568,7 +568,7 @@ void FnDecl::EmitClass(CodeGenerator *codegen, const char *classname) {
   codegen->GenLabel(codegen->LabelForNameWithPrefix(classname, GetName()));
 
   BeginFunc *bfunc = codegen->GenBeginFunc();
-  if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i);
+  if (formals) for (int i = 0; i < formals->NumElements(); i++) formals->Nth(i)->EmitFormal(codegen, i+1);
   if (body) body->Emit(codegen);
   int tmpafter = codegen->nextTempNum;
   int bodycount = 0;

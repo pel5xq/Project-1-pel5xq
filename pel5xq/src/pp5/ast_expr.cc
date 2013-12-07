@@ -1082,6 +1082,19 @@ void Call::Emit(CodeGenerator *codegen) {
          codeLoc = codegen->GenLoad(base->codeLoc, -4);//array.length stored in int before array
       }
       //handle class method calls
+      ClassDecl *classdecl = dynamic_cast<ClassDecl *>(symboltable->Find(base->getTypeName()));
+      Assert(classdecl);
+      FnDecl *fndecl = dynamic_cast<FnDecl *>(classdecl->bodytable->Find(field->GetName()));
+      Assert(fndecl);
+      int fnoffset = classdecl->getOffsetForMethod(codegen, fndecl->GetName());
+      Assert(-1 != fnoffset);
+
+      for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
+      Location *fnloc = codegen->GenLoad(codegen->GenLoad(base->useCodeLoc(codegen), 0), fnoffset * codegen->VarSize);
+      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
+      codegen->GenPushParam(base->useCodeLoc(codegen));
+      codeLoc = codegen->GenACall(fnloc, (strcmp(fndecl->GetType()->GetFullName(), "void") != 0));
+      codegen->GenPopParams((actuals->NumElements()+1) * codegen->VarSize);
    }
    else {
       FnDecl *fndecl = dynamic_cast<FnDecl *>(symboltable->Find(field->GetName()));
