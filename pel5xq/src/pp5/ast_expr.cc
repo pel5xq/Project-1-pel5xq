@@ -1081,14 +1081,39 @@ void Call::Emit(CodeGenerator *codegen) {
       if(NULL != strchr(base->getTypeName(), '[') && 0 == strcmp(field->GetName(), "length")) {
          codeLoc = codegen->GenLoad(base->codeLoc, -4);//array.length stored in int before array
       }
+      //handle class method calls
    }
    else {
-      for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
-      for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
+      FnDecl *fndecl = dynamic_cast<FnDecl *>(symboltable->Find(field->GetName()));
+      Assert (fndecl);
+
+      ClassDecl *classdecl = NULL;
+      Node *searchnode = this;
+      while(NULL == classdecl && NULL != (searchnode = searchnode->GetParent()) ) {
+        ClassDecl *cdecl = dynamic_cast<ClassDecl *>(searchnode);
+        if (cdecl) classdecl = cdecl;
+      }
+      int fnoffset = -1;
+      if (classdecl) {
+        fnoffset = classdecl->getOffsetForMethod(codegen, fndecl->GetName());
+      }
+
+      if (-1 != fnoffset) {//handle implied this call
+        for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
+        Location *fnloc = codegen->GenLoad(codegen->GenLoad(codegen->ThisPtr, 0), fnoffset * codegen->VarSize);
+        for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
+        codegen->GenPushParam(codegen->ThisPtr);
+        codeLoc = codegen->GenACall(fnloc, (strcmp(fndecl->GetType()->GetFullName(), "void") != 0));
+        codegen->GenPopParams((actuals->NumElements()+1) * codegen->VarSize);
+      }
+      else {
+        for (int i = 0; i < actuals->NumElements(); i++) actuals->Nth(i)->Emit(codegen);
+        for (int i = actuals->NumElements()-1; i >= 0; i--) codegen->GenPushParam(actuals->Nth(i)->useCodeLoc(codegen));
       
-      codeLoc = codegen->GenLCall(codegen->LabelForName(field->GetName()), 
-         (strcmp((dynamic_cast<FnDecl *>(symboltable->Find(field->GetName())))->GetType()->GetFullName(), "void") != 0));
-      codegen->GenPopParams(actuals->NumElements() * codegen->VarSize);
+        codeLoc = codegen->GenLCall(codegen->LabelForName(field->GetName()), 
+          (strcmp(fndecl->GetType()->GetFullName(), "void") != 0));
+        codegen->GenPopParams(actuals->NumElements() * codegen->VarSize);
+      }
    }
 }
 
@@ -1096,8 +1121,7 @@ void NewExpr::Emit(CodeGenerator *codegen) {
    Expr::Emit(codegen);
    ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(cType->GetName()));
    Assert(parentclass); 
-   printf("%s %d\n", parentclass->GetName(), parentclass->getSize());
-   codeLoc = codegen->GenNewExpr(parentclass->getSize(), cType->GetName());
+   codeLoc = codegen->GenNewExpr((parentclass->getSize()+1) * codegen->VarSize, cType->GetName());
 }
 
 void NewArrayExpr::Emit(CodeGenerator *codegen) {

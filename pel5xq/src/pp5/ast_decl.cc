@@ -443,8 +443,21 @@ void ClassDecl::Emit(CodeGenerator *codegen) {
     }
   }
   codegen->GenVTable(GetName(), getMethodLabels(codegen));
-  newSize = varoffsetCounter * codegen->VarSize;
-  printf("%s: %d %d\n", GetName(), varoffsetCounter, newSize);
+}
+
+int ClassDecl::getSize() {
+  int retSize = 0;
+  if (extends) {
+    ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(extends->GetName()));
+    Assert(parentclass);
+    retSize += parentclass->getSize();
+  }
+  for (int i = 0; i < members->NumElements(); i++) {
+    Decl *member = members->Nth(i);
+    VarDecl *varmember = dynamic_cast<VarDecl *>(member);
+    if (varmember) retSize++;
+  }
+  return retSize;
 }
 
 List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
@@ -460,6 +473,8 @@ List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
   for (int i = 0; i < members->NumElements(); i++) {
     FnDecl *fndecl = dynamic_cast<FnDecl *>(members->Nth(i));
     if (fndecl) {
+      fndecl->isAddress = true;
+
       bool isOverride = false;
       const char *newlabel = codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName());
       for (int k = 0; k < list->NumElements(); k++) {
@@ -480,6 +495,43 @@ List<const char *> *ClassDecl::getMethodLabels(CodeGenerator *codegen) {
     }
   }
   return list;
+}
+
+int ClassDecl::getOffsetForMethod(CodeGenerator *codegen, const char *methodName) {
+  List<const char*> *list = new List<const char*>;
+  //Add parent's labels first, always maintain same order
+  //If label here overrides previous label, replace in order
+  if (extends) { //Ignoring interfaces for pp5
+    ClassDecl *parentclass = dynamic_cast<ClassDecl *>(symboltable->Find(extends->GetName()));
+    Assert(parentclass);
+    List<const char*> *parentList = parentclass->getMethodLabels(codegen);
+    for (int j = 0; j < parentList->NumElements(); j++) list->Append(parentList->Nth(j));
+  }
+  for (int i = 0; i < members->NumElements(); i++) {
+    FnDecl *fndecl = dynamic_cast<FnDecl *>(members->Nth(i));
+    if (fndecl) {
+      bool isOverride = false;
+      const char *newlabel = codegen->LabelForNameWithPrefix(GetName(), fndecl->GetName());
+      for (int k = 0; k < list->NumElements(); k++) {
+         char *buff = new char[strlen(fndecl->GetName())];
+         strncpy(buff, strchr(list->Nth(k), '.')+1, strlen(fndecl->GetName()));
+         if (0 == strcmp(buff, fndecl->GetName())) {
+           list->RemoveAt(k);
+           list->InsertAt(newlabel, k);
+           isOverride = true;
+         }
+      }
+      if (!isOverride) {
+        list->Append(newlabel);
+      }
+    }
+  }
+  for (int c = 0; c < list->NumElements(); c++) {
+    char *buff = new char[strlen(methodName)];
+    strncpy(buff, strchr(list->Nth(c), '.')+1, strlen(methodName));
+    if (0 == strcmp(buff, methodName)) return c;
+  }
+    return -1;
 }
 
 void InterfaceDecl::Emit(CodeGenerator *codegen) {

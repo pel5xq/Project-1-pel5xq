@@ -82,8 +82,8 @@ class ClassDecl : public Decl
     int isSubclassOf(const char *parentName);
     void Emit(CodeGenerator *codegen);
     List<const char *> *getMethodLabels(CodeGenerator *codegen);
-    int newSize;
-    int getSize() { return newSize; }
+    int getSize();
+    int getOffsetForMethod(CodeGenerator *codegen, const char *methodName);
 };
 
 class InterfaceDecl : public Decl 

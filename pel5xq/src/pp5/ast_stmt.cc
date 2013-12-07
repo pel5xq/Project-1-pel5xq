@@ -440,10 +440,10 @@ void Program::Emit(CodeGenerator *codegen) {
       if (NULL != dynamic_cast<VarDecl *>(decls->Nth(i))) decls->Nth(i)->Emit(codegen);
    } //Do global vardecls first
    for (int i = 0; i < decls->NumElements(); i++) {
-      if (NULL != dynamic_cast<FnDecl *>(decls->Nth(i))) decls->Nth(i)->Emit(codegen);
-   }
-   for (int i = 0; i < decls->NumElements(); i++) {
       if (NULL != dynamic_cast<ClassDecl *>(decls->Nth(i))) decls->Nth(i)->Emit(codegen);
+   } //Classes can call function labels before they are generated, but not the other way around
+   for (int i = 0; i < decls->NumElements(); i++) {
+      if (NULL != dynamic_cast<FnDecl *>(decls->Nth(i))) decls->Nth(i)->Emit(codegen);
    }
 }
 
