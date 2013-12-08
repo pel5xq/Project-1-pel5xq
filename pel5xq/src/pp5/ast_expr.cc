@@ -1013,8 +1013,7 @@ void ArrayAccess::Emit(CodeGenerator *codegen) {
    base->Emit(codegen);
    subscript->Emit(codegen);
    isAddress = true;
-   //I think base is always an address, so no need for useCodeLoc
-   codeLoc = codegen->GenArraySubscriptCall(base->codeLoc, subscript->useCodeLoc(codegen));
+   codeLoc = codegen->GenArraySubscriptCall(base->useCodeLoc(codegen), subscript->useCodeLoc(codegen));
 }
 
 Location *ArrayAccess::useCodeLoc(CodeGenerator *codegen) { 
