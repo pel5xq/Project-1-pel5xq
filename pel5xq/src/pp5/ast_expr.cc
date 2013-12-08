@@ -1032,7 +1032,9 @@ void FieldAccess::Emit(CodeGenerator *codegen) {
       //Will base always be addressable?
       classBase = base->useCodeLoc(codegen);
       //lookup var in class's context
-      VarDecl *var = dynamic_cast<VarDecl *>(base->symboltable->Find(field->GetName()));
+      ClassDecl *classdecl = dynamic_cast<ClassDecl *>(symboltable->Find(base->getTypeName()));
+      Assert(classdecl);
+      VarDecl *var = dynamic_cast<VarDecl *>(classdecl->bodytable->Find(field->GetName()));
       Assert(var);
       classPlacement = var->classPlacement;
    }
