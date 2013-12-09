@@ -1,3 +1,3 @@
 Notes on this implementation of PP5:
 
-Since it is an undergraduate implementation, arrays of arrays do not work (thus t4 will not work).
+Since this is an undergraduate implementation, arrays of arrays and strings have not been fully tested (although the given test cases seem to work such as t4.decaf).

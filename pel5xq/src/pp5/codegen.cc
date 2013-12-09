@@ -130,6 +130,8 @@ void CodeGenerator::GenGoto(const char *label)
 
 void CodeGenerator::GenReturn(Location *val)
 {
+  //Temporary NOP solution to strange queue error
+  GenLoadConstant(0);
   code.push_back(new Return(val));
 }
 
