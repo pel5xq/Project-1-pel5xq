@@ -1066,7 +1066,7 @@ void Call::Emit(CodeGenerator *codegen) {
    if (base) {
       base->Emit(codegen);
       if(NULL != strchr(base->getTypeName(), '[') && 0 == strcmp(field->GetName(), "length")) {
-         codeLoc = codegen->GenLoad(base->codeLoc, -4);//array.length stored in int before array
+         codeLoc = codegen->GenLoad(base->useCodeLoc(codegen), -4);//array.length stored in int before array
       }
       else {
         ClassDecl *classdecl = dynamic_cast<ClassDecl *>(symboltable->Find(base->getTypeName()));
